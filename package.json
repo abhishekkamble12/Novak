@@ -1,0 +1,36 @@
+{
+  "name": "lumen-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lumen — AI-Native Social Platform (Instagram-scale MERN + FastAPI + Qdrant)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "infra:up": "docker compose -f infra/docker-compose.yml up -d",
+    "infra:down": "docker compose -f infra/docker-compose.yml down",
+    "infra:logs": "docker compose -f infra/docker-compose.yml logs -f"
+  },
+  "keywords": [
+    "social-platform",
+    "ai-native",
+    "mern",
+    "fastapi",
+    "qdrant",
+    "vector-search",
+    "clip",
+    "redis",
+    "bullmq"
+  ],
+  "author": "Abhishek",
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^3.3.3"
+  }
+}
