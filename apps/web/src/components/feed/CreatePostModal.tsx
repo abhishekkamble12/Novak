@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Sparkles, Image as ImageIcon, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
+import { X, Sparkles, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 
 interface CreatePostModalProps {
   isOpen: boolean;

@@ -5,11 +5,13 @@ import { RateLimitError } from "../utils/errors.js";
 
 export const globalRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300, // Limit each IP to 300 requests per `window`
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
+  passOnStoreError: true, // Degrade gracefully if Redis is temporarily unreachable
+  skip: (req) => req.path === "/api/health",
   store: new RedisStore({
-    // @ts-expect-error RedisStore type compatibility with ioredis
+    // @ts-expect-error RedisStore command compatibility with ioredis
     sendCommand: (...args: string[]) => redis.call(...args),
     prefix: "rl:global:",
   }),
@@ -19,12 +21,13 @@ export const globalRateLimiter = rateLimit({
 });
 
 export const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 15, // Limit auth attempts (login/signup)
+  windowMs: 15 * 60 * 1000,
+  max: 15,
   standardHeaders: true,
   legacyHeaders: false,
+  passOnStoreError: true,
   store: new RedisStore({
-    // @ts-expect-error RedisStore type compatibility with ioredis
+    // @ts-expect-error RedisStore command compatibility with ioredis
     sendCommand: (...args: string[]) => redis.call(...args),
     prefix: "rl:auth:",
   }),

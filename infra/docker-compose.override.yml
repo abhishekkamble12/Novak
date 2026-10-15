@@ -1,21 +1,34 @@
-version: '3.8'
-
 services:
   api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+      target: dev
     volumes:
-      - ../apps/api:/app/apps/api
-      - ../packages/contracts:/app/packages/contracts
+      - ../apps/api/src:/app/apps/api/src
+      - ../packages/contracts/src:/app/packages/contracts/src
       - /app/apps/api/node_modules
     command: npm run dev --workspace=@lumen/api
 
   ai-service:
+    build:
+      context: ..
+      dockerfile: apps/ai-service/Dockerfile
+      target: dev
     volumes:
       - ../apps/ai-service/app:/app/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+      target: dev
+    ports:
+      - "5173:5173"
     volumes:
-      - ../apps/web:/app/apps/web
-      - ../packages/contracts:/app/packages/contracts
+      - ../apps/web/src:/app/apps/web/src
+      - ../apps/web/public:/app/apps/web/public
+      - ../packages/contracts/src:/app/packages/contracts/src
       - /app/apps/web/node_modules
     command: npm run dev --workspace=@lumen/web -- --host 0.0.0.0

@@ -60,10 +60,12 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onSave }) => {
                 {post.authorUsername}
               </span>
               {post.moderationStatus === "approved" && (
-                <ShieldCheck
-                  className="w-4 h-4 text-emerald-400"
-                  title="Content verified safe by AI Moderation"
-                />
+                <span title="Content verified safe by AI Moderation">
+                  <ShieldCheck
+                    className="w-4 h-4 text-emerald-400"
+                    aria-label="Verified safe"
+                  />
+                </span>
               )}
             </div>
             <span className="text-[11px] text-slate-400">

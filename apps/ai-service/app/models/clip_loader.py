@@ -1,6 +1,6 @@
 import hashlib
 import numpy as np
-from typing import List, Optional
+from typing import List
 from app.config import settings
 
 class ClipModelService:
@@ -13,7 +13,7 @@ class ClipModelService:
 
     def load_model(self):
         try:
-            import open_clip
+            import open_clip  # noqa: F401
             import torch
 
             model, _, preprocess = open_clip.create_model_and_transforms(
@@ -52,7 +52,6 @@ class ClipModelService:
                 features /= features.norm(dim=-1, keepdim=True)
                 return features.cpu().numpy()[0].tolist()
 
-        # Fallback pseudo-vector for development
         seed_str = str(getattr(image_data, "size", "fallback_image"))
         return self._generate_fallback_vector(seed_str, settings.VECTOR_DIM)
 

@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint-and-typecheck:
     name: Lint & Typecheck
@@ -15,14 +19,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci || npm install
+
+      - name: Build contracts
+        run: npm run build --workspace=@lumen/contracts
 
       - name: Typecheck contracts
         run: npm run typecheck --workspace=@lumen/contracts
@@ -30,7 +37,7 @@ jobs:
       - name: Typecheck API
         run: npm run typecheck --workspace=@lumen/api
 
-      - name: Typecheck Web
+      - name: Build & Typecheck Web
         run: npm run build --workspace=@lumen/web
 
   python-ai-check:
@@ -51,7 +58,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r apps/ai-service/requirements.txt
-          pip install ruff pytest
+          pip install ruff pytest pytest-asyncio
 
       - name: Lint with ruff
         run: ruff check apps/ai-service
@@ -73,11 +80,21 @@ jobs:
         with:
           context: .
           file: apps/api/Dockerfile
+          target: prod
           push: false
 
       - name: Build AI Service Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: apps/ai-service
+          context: .
           file: apps/ai-service/Dockerfile
+          target: prod
+          push: false
+
+      - name: Build Web Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          target: prod
           push: false

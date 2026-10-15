@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Search, Sparkles, Zap, Heart, Eye } from "lucide-react";
+import { Search, Sparkles, Zap, Heart, Eye, Loader2 } from "lucide-react";
 
 interface VisualItem {
   id: string;
@@ -115,10 +115,20 @@ export const ExplorePage: React.FC = () => {
             />
             <button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 rounded-lg bg-gradient-brand text-white font-medium text-xs shadow-neon flex items-center space-x-1 hover:opacity-90 transition-opacity"
+              disabled={isSearching}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 rounded-lg bg-gradient-brand text-white font-medium text-xs shadow-neon flex items-center space-x-1 hover:opacity-90 disabled:opacity-50 transition-opacity"
             >
-              <Zap className="w-3.5 h-3.5" />
-              <span>Search</span>
+              {isSearching ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Searching...</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>Search</span>
+                </>
+              )}
             </button>
           </form>
 
@@ -151,8 +161,8 @@ export const ExplorePage: React.FC = () => {
           {searchQuery && ` for "${searchQuery}"`}
         </span>
         <span className="flex items-center space-x-1 text-pink-400 font-medium">
-          <Zap className="w-3.5 h-3.5" />
-          <span>Qdrant vector query latency: ~14ms</span>
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Multimodal Vector Index</span>
         </span>
       </div>
 

@@ -18,7 +18,7 @@ class QdrantVectorStore:
             self.ensure_collection()
             print(f"[Qdrant] Connected to {settings.QDRANT_HOST}:{settings.QDRANT_PORT}")
         except Exception as e:
-            print(f"[Qdrant] Notice: Connection not established ({e}). Will run in standalone memory mode if needed.")
+            print(f"[Qdrant] Notice: Connection not established ({e}). Running in fallback mode.")
             self.client = None
 
     def ensure_collection(self):
@@ -46,10 +46,9 @@ class QdrantVectorStore:
             return False
 
         try:
-            # We map post_id to a deterministic point ID or use string if Qdrant supports UUID/hash
             import uuid
             point_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, post_id))
-            
+
             self.client.upsert(
                 collection_name=settings.QDRANT_COLLECTION_POSTS,
                 points=[
@@ -65,27 +64,67 @@ class QdrantVectorStore:
             print(f"[Qdrant] Upsert error: {e}")
             return False
 
-    def search_posts(self, vector: List[float], limit: int = 20) -> List[Dict[str, Any]]:
+    def search_posts(
+        self,
+        vector: List[float],
+        limit: int = 20,
+        offset: int = 0,
+        filter_tag: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         if not self.client:
             return []
 
         try:
-            results = self.client.search(
-                collection_name=settings.QDRANT_COLLECTION_POSTS,
-                query_vector=vector,
-                limit=limit,
-                with_payload=True
-            )
-            return [
-                {
-                    "post_id": r.payload.get("post_id", str(r.id)),
-                    "score": r.score,
-                    "payload": r.payload
-                }
-                for r in results
-            ]
+            qfilter = None
+            if filter_tag:
+                qfilter = qmodels.Filter(
+                    must=[
+                        qmodels.FieldCondition(
+                            key="tags",
+                            match=qmodels.MatchValue(value=filter_tag)
+                        )
+                    ]
+                )
+
+            # In qdrant-client >= 1.16, use query_points
+            if hasattr(self.client, "query_points"):
+                response = self.client.query_points(
+                    collection_name=settings.QDRANT_COLLECTION_POSTS,
+                    query=vector,
+                    limit=limit,
+                    offset=offset,
+                    query_filter=qfilter,
+                    with_payload=True
+                )
+                points = response.points
+                return [
+                    {
+                        "post_id": (p.payload or {}).get("post_id", str(p.id)),
+                        "score": p.score,
+                        "payload": p.payload or {}
+                    }
+                    for p in points
+                ]
+            else:
+                # Legacy fallback for older qdrant-client
+                results = self.client.search(
+                    collection_name=settings.QDRANT_COLLECTION_POSTS,
+                    query_vector=vector,
+                    limit=limit,
+                    offset=offset,
+                    query_filter=qfilter,
+                    with_payload=True
+                )
+                return [
+                    {
+                        "post_id": (r.payload or {}).get("post_id", str(r.id)),
+                        "score": r.score,
+                        "payload": r.payload or {}
+                    }
+                    for r in results
+                ]
         except Exception as e:
-            print(f"[Qdrant] Search error: {e}")
+            print(f"[Qdrant] Query points error: {e}")
             return []
 
 qdrant_store = QdrantVectorStore()

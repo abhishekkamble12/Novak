@@ -1,4 +1,5 @@
-from typing import Optional, List
+import re
+from typing import Optional
 from app.schemas.contracts import ModerationResult
 
 BLOCKED_TERMS = {
@@ -17,7 +18,10 @@ class ModerationService:
         scores = {}
 
         for category, terms in BLOCKED_TERMS.items():
-            matches = [t for t in terms if t in lower_text]
+            matches = [
+                term for term in terms
+                if re.search(rf"\b{re.escape(term)}\b", lower_text, re.IGNORECASE)
+            ]
             if matches:
                 flagged_labels.append(category)
                 scores[category] = 0.95
@@ -52,8 +56,6 @@ class ModerationService:
         )
 
     def evaluate_image(self, image_url: Optional[str]) -> ModerationResult:
-        # In full pipeline, runs lightweight NSFW/Toxicity vision model
-        # For base service, we validate presence and URL safety
         return ModerationResult(
             is_flagged=False,
             status="approved",

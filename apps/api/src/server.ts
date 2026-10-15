@@ -8,13 +8,11 @@ import { connectDB, disconnectDB } from "./config/db.js";
 import { redis, disconnectRedis } from "./config/redis.js";
 
 async function bootstrap() {
-  // Connect Databases
   await connectDB();
 
   const app = createApp();
   const httpServer = http.createServer(app);
 
-  // Setup Socket.IO with Redis pub/sub adapter
   const pubClient = redis;
   const subClient = redis.duplicate();
 
@@ -28,7 +26,6 @@ async function bootstrap() {
 
   io.on("connection", (socket) => {
     logger.debug({ socketId: socket.id }, "Socket connected");
-
     socket.on("disconnect", (reason) => {
       logger.debug({ socketId: socket.id, reason }, "Socket disconnected");
     });
@@ -38,15 +35,23 @@ async function bootstrap() {
     logger.info(`Lumen API server running at http://localhost:${env.PORT} in ${env.NODE_ENV} mode`);
   });
 
-  // Graceful Shutdown
+  let isShuttingDown = false;
   const shutdown = async (signal: string) => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
     logger.info(`Received ${signal}. Initiating graceful shutdown...`);
+
+    const forceTimer = setTimeout(() => {
+      logger.error("Graceful shutdown timeout exceeded (10s). Forcing exit.");
+      process.exit(1);
+    }, 10000);
+    forceTimer.unref();
 
     server.close(async () => {
       logger.info("HTTP server closed");
-
       try {
         io.close();
+        await subClient.quit();
         await disconnectRedis();
         await disconnectDB();
         logger.info("All connections closed. Exiting process.");
@@ -56,12 +61,6 @@ async function bootstrap() {
         process.exit(1);
       }
     });
-
-    // Force exit after 10s timeout
-    setTimeout(() => {
-      logger.error("Graceful shutdown timeout exceeded. Forcing exit.");
-      process.exit(1);
-    }, 10000);
   };
 
   process.on("SIGTERM", () => shutdown("SIGTERM"));

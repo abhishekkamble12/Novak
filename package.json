@@ -3,17 +3,24 @@
   "version": "1.0.0",
   "private": true,
   "description": "Lumen — AI-Native Social Platform (Instagram-scale MERN + FastAPI + Qdrant)",
+  "engines": {
+    "node": ">=20.11.0 <23"
+  },
+  "packageManager": "npm@10.9.2",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspaces --if-present",
+    "predev": "npm run build --workspace=@lumen/contracts",
+    "dev": "concurrently -n contracts,api,web -c gray,blue,magenta \"npm run dev --workspace=@lumen/contracts\" \"npm run dev --workspace=@lumen/api\" \"npm run dev --workspace=@lumen/web\"",
+    "dev:ai": "cd apps/ai-service && uvicorn app.main:app --reload --port 8000",
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present",
-    "infra:up": "docker compose -f infra/docker-compose.yml up -d",
+    "typecheck": "npm run typecheck --workspace=@lumen/contracts && npm run typecheck --workspace=@lumen/api && npm run build --workspace=@lumen/web",
+    "infra:up": "docker compose -f infra/docker-compose.yml up -d mongo redis qdrant",
+    "infra:all": "docker compose -f infra/docker-compose.yml -f infra/docker-compose.override.yml --profile app up -d",
     "infra:down": "docker compose -f infra/docker-compose.yml down",
     "infra:logs": "docker compose -f infra/docker-compose.yml logs -f"
   },
@@ -31,6 +38,7 @@
   "author": "Abhishek",
   "license": "MIT",
   "devDependencies": {
+    "concurrently": "^8.2.2",
     "prettier": "^3.3.3"
   }
 }

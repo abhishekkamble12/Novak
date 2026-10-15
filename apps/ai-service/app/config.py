@@ -1,7 +1,8 @@
-import os
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=("../../.env", ".env"), extra="ignore")
+
     AI_HOST: str = "0.0.0.0"
     AI_PORT: int = 8000
     AI_ENV: str = "development"
@@ -22,9 +23,5 @@ class Settings(BaseSettings):
     TEXT_EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
     DEVICE: str = "cpu"
     VECTOR_DIM: int = 512
-
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
 
 settings = Settings()
