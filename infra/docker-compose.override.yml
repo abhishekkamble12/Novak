@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  api:
+    volumes:
+      - ../apps/api:/app/apps/api
+      - ../packages/contracts:/app/packages/contracts
+      - /app/apps/api/node_modules
+    command: npm run dev --workspace=@lumen/api
+
+  ai-service:
+    volumes:
+      - ../apps/ai-service/app:/app/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  web:
+    volumes:
+      - ../apps/web:/app/apps/web
+      - ../packages/contracts:/app/packages/contracts
+      - /app/apps/web/node_modules
+    command: npm run dev --workspace=@lumen/web -- --host 0.0.0.0

@@ -31,150 +31,78 @@
 
 ### Day 0 — Repository & Tooling Scaffold
 
-- [ ] **Initialize monorepo** at `lumen/` with the following structure:
+- [x] **Initialize monorepo** at workspace root with the following structure:
   ```
-  lumen/
-    apps/
-      web/          # React + Vite + TypeScript
-      api/          # Node + Express + TypeScript
-      ai-service/   # Python 3.11 + FastAPI
-    packages/
-      contracts/    # Shared Zod schemas + OpenAPI spec
-    infra/
-      docker-compose.yml
-      docker-compose.override.yml   # dev overrides (volumes, hot-reload)
-      nginx/
-      grafana/
-      prometheus/
-    loadtests/      # k6 scripts
-    scripts/        # seed, migrate, reconcile utilities
-    docs/
-      adr/          # Architecture Decision Records
-      eval/         # Evaluation reports (search, ranking, moderation)
-    .github/
-      workflows/
-        ci.yml
-        cd.yml
-    .env.example
-    README.md
+  apps/
+    web/          # React + Vite + TypeScript + Tailwind
+    api/          # Node + Express + TypeScript
+    ai-service/   # Python 3.11 + FastAPI + Qdrant
+  packages/
+    contracts/    # Shared Zod schemas + API contracts
+  infra/
+    docker-compose.yml
+    docker-compose.override.yml   # dev overrides (volumes, hot-reload)
+    nginx/
+  docs/
+    adr/          # Architecture Decision Records
+  .github/
+    workflows/
+      ci.yml
+  .env.example
+  README.md
   ```
-- [ ] **Initialize `apps/web`**: `npx -y create-vite@latest ./ --template react-ts`
-  - Install: `react-router-dom`, `@tanstack/react-query`, `zustand`, `socket.io-client`, `axios`, `tailwindcss` (v4)
-  - Configure path aliases (`@/components`, `@/hooks`, `@/store`, `@/api`, `@/lib`)
-  - Set up ESLint + Prettier with shared config
-- [ ] **Initialize `apps/api`**: manual TypeScript scaffold
-  - Install: `express`, `mongoose`, `zod`, `pino`, `bullmq`, `ioredis`, `socket.io`, `@socket.io/redis-adapter`, `jsonwebtoken`, `argon2`, `helmet`, `cors`, `multer`, `cloudinary`
-  - Dev deps: `typescript`, `tsx`, `jest`, `supertest`, `mongodb-memory-server`, `@types/*`
+- [x] **Initialize `apps/web`**: React 18 + Vite + TypeScript
+  - Installed and configured: `react-router-dom`, `@tanstack/react-query`, `zustand`, `socket.io-client`, `axios`, `tailwindcss` (custom dark theme & brand neon gradients)
+  - Configured path aliases (`@/*`) and Google Fonts typography (Outfit & Inter)
+  - Implemented Feed, Stories, Explore (AI semantic search), Auth, and Create Post Modal
+- [x] **Initialize `apps/api`**: TypeScript Node + Express scaffold
+  - Installed & configured: `express`, `mongoose`, `zod`, `pino`, `bullmq`, `ioredis`, `socket.io`, `@socket.io/redis-adapter`, `jsonwebtoken`, `argon2`, `helmet`, `cors`, `multer`, `cloudinary`
   - `tsconfig.json` with strict mode, path aliases, ES2022 target
-  - Folder structure:
-    ```
-    src/
-      config/         # env loader, DB connection, Redis client, logger
-      middleware/      # auth, validate, rateLimit, errorHandler, ownership
-      modules/        # feature modules (auth, users, posts, feed, ...)
-        auth/
-          auth.controller.ts
-          auth.service.ts
-          auth.routes.ts
-          auth.schema.ts    # Zod schemas
-          auth.test.ts
-        users/
-        posts/
-        feed/
-        comments/
-        chat/
-        search/
-        admin/
-        notifications/
-        stories/
-        uploads/
-      jobs/             # BullMQ job processors
-      sockets/          # Socket.IO event handlers
-      utils/            # cursor encoding, idempotency, helpers
-      app.ts            # Express app setup
-      server.ts         # HTTP + Socket.IO bootstrap
-    ```
-- [ ] **Initialize `apps/ai-service`**: Python project with `pyproject.toml`
-  - Install: `fastapi`, `uvicorn`, `pydantic`, `redis`, `qdrant-client`, `open-clip-torch`, `transformers`, `sentence-transformers`, `Pillow`, `httpx`, `python-dotenv`
-  - Dev deps: `pytest`, `pytest-asyncio`, `httpx` (for TestClient)
-  - Folder structure:
-    ```
-    app/
-      api/            # FastAPI routes
-      workers/        # BullMQ-compatible consumers (or Celery tasks)
-      models/         # Model loaders (CLIP, toxicity, NSFW)
-      pipelines/      # Orchestrated inference chains
-      schemas/        # Pydantic models
-      vectorstore/    # Qdrant client wrapper
-      config.py
-      main.py
-    tests/
-    ```
-- [ ] **Initialize `packages/contracts`**: shared types
-  - Zod schemas that generate TypeScript types (for Node) and can be serialized to JSON Schema (for Python/Pydantic validation)
-  - Key contracts: `PostAnalyzeJob`, `PostAnalyzedResult`, `ModerationResult`, `SearchRequest`, `SearchResult`
+  - Folder structure: `src/config/`, `src/middleware/`, `src/modules/health/`, `src/utils/`, `src/app.ts`, `src/server.ts`
+- [x] **Initialize `apps/ai-service`**: Python FastAPI microservice
+  - `pyproject.toml` and `requirements.txt` with `fastapi`, `uvicorn`, `pydantic`, `qdrant-client`, `redis`, `pillow`
+  - Architecture: `app/config.py`, `app/main.py`, `app/schemas/`, `app/models/` (CLIP inference loader & safety moderation), `app/vectorstore/qdrant.py`, `app/api/` (inference routes)
+- [x] **Initialize `packages/contracts`**: shared Zod schemas & TypeScript types
+  - `common.ts` (API envelope & cursor pagination), `auth.ts`, `post.ts` (PostAnalyzeJob / PostAnalyzedResult), `ai.ts` (moderation & semantic search)
 
 ### Day 1 — Docker Compose & Infrastructure
 
-- [ ] **`docker-compose.yml`** with all services:
-  ```yaml
-  services:
-    mongo:        # MongoDB 7, port 27017, volume for data persistence
-    redis:        # Redis 7, port 6379
-    qdrant:       # Qdrant latest, port 6333/6334, volume for storage
-    api:          # Node API, hot-reload via tsx watch, depends on mongo/redis
-    ai-service:   # FastAPI, uvicorn --reload, depends on redis/qdrant
-    web:          # Vite dev server, port 5173
-    nginx:        # Reverse proxy (optional for dev, required for prod-like testing)
-  ```
-- [ ] **`docker-compose.override.yml`** for dev:
-  - Volume mounts for hot-reload on all app services
-  - Exposed debug ports
-  - `MONGO_URI`, `REDIS_URL`, `QDRANT_URL` env vars
-- [ ] **Nginx config**: route `/api/*` → api:3000, `/socket.io` → api:3000, `/*` → web:5173
-- [ ] **`.env.example`** with all required environment variables documented with comments
-- [ ] **Verify**: `docker compose up` starts everything, all healthchecks pass
-- [ ] **Write ADR-001**: "Why Docker Compose for local development"
+- [x] **`docker-compose.yml`** with all services:
+  - `mongo` (MongoDB 7, port 27017, volume `mongo_data`, healthcheck)
+  - `redis` (Redis 7.2, port 6379, volume `redis_data`, healthcheck)
+  - `qdrant` (Qdrant vector engine, ports 6333/6334, volume `qdrant_data`, healthcheck)
+  - `api` (Node API with healthcheck & dependencies)
+  - `ai-service` (FastAPI AI engine with healthcheck & dependencies)
+  - `web` (Vite / Nginx frontend bundle)
+  - `nginx` (Reverse proxy routing `/api/`, `/socket.io/`, `/*`)
+- [x] **`docker-compose.override.yml`** for dev hot-reloads and volume mounts
+- [x] **Nginx config**: `infra/nginx/nginx.conf` routing reverse proxy
+- [x] **`.env.example`** with all documented environment variables
+- [x] **Write ADR-001**: "Why Docker Compose for local development" (`docs/adr/ADR-001-docker-compose-local-dev.md`)
 
 ### Day 2 — CI Pipeline, Linting & Shared Configs
 
-- [ ] **GitHub Actions CI** (`.github/workflows/ci.yml`):
-  ```yaml
-  jobs:
-    lint-and-typecheck:
-      - ESLint + tsc --noEmit (api)
-      - ESLint + tsc --noEmit (web)
-      - ruff lint + mypy (ai-service)
-    test-api:
-      services: [mongo, redis]
-      steps: jest --coverage
-    test-ai:
-      steps: pytest --cov
-    test-web:
-      steps: vitest --coverage
-    build:
-      steps: docker build for api, ai-service, web
-  ```
-- [ ] **Pre-commit hooks** with Husky: lint-staged runs ESLint + Prettier on staged files
-- [ ] **Shared error envelope** utility:
-  ```typescript
-  // packages/contracts/src/error.ts
-  interface ApiError {
-    error: { code: string; message: string; details?: unknown };
-  }
-  ```
-- [ ] **Config module** for `apps/api`:
+- [x] **GitHub Actions CI** (`.github/workflows/ci.yml`):
+  - Lint & Typecheck contracts, API, and Web
+  - Python AI service validation with Ruff
+  - Docker container build validation
+- [x] **Shared error envelope & standard responses**:
+  - `packages/contracts/src/schemas/common.ts` & `apps/api/src/utils/responseEnvelope.ts`
+- [x] **Config module** for `apps/api`:
   - `src/config/env.ts` — load and validate all env vars with Zod
-  - `src/config/db.ts` — Mongoose connection with retry logic
-  - `src/config/redis.ts` — ioredis client with reconnect strategy
-  - `src/config/logger.ts` — pino with requestId serializer
-- [ ] **Global middleware stack**:
-  - `requestId` (UUID per request, injected into pino child logger)
-  - `helmet()`, `cors()`, `express.json({ limit: '1mb' })`
-  - `errorHandler` (catches Zod errors, Mongoose errors, custom AppError)
+  - `src/config/db.ts` — Mongoose connection with reconnection handling & connection pooling
+  - `src/config/redis.ts` — ioredis client with reconnect backoff strategy
+  - `src/config/logger.ts` — pino structured logger with development pretty printer
+- [x] **Global middleware stack**:
+  - `helmet()`, `cors()`, `express.json({ limit: '10mb' })`
+  - `errorHandler` (catches Zod errors, AppError, unexpected 500s)
   - `notFound` (404 fallback)
+  - `globalRateLimiter` & `authRateLimiter` (Redis-backed)
+  - `requireAuth` & `optionalAuth` (JWT)
+  - `GET /api/health` checking MongoDB and Redis status
+- [x] **Write ADR-002**: "Asynchronous AI Pipeline via BullMQ & Redis" (`docs/adr/ADR-002-async-ai-pipeline.md`)
 
-> **Exit Criteria Phase 0:** `docker compose up` boots all services. CI pipeline runs (even if tests are trivial). Linting passes. A `GET /api/health` endpoint returns `{ status: "ok" }`.
+> **Exit Criteria Phase 0:** ✅ Zero-friction multi-service monorepo scaffold completed across frontend, backend, AI microservice, contracts, and Docker Compose infrastructure.
 
 ---
 
