@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+
 from app.schemas.contracts import ModerationResult
 
 BLOCKED_TERMS = {
@@ -9,7 +9,7 @@ BLOCKED_TERMS = {
 }
 
 class ModerationService:
-    def evaluate_text(self, text: Optional[str]) -> ModerationResult:
+    def evaluate_text(self, text: str | None) -> ModerationResult:
         if not text:
             return ModerationResult(is_flagged=False, status="approved", confidence=1.0)
 
@@ -55,7 +55,7 @@ class ModerationService:
             scores=scores,
         )
 
-    def evaluate_image(self, image_url: Optional[str]) -> ModerationResult:
+    def evaluate_image(self, image_url: str | None) -> ModerationResult:
         return ModerationResult(
             is_flagged=False,
             status="approved",

@@ -1,7 +1,9 @@
 import hashlib
+
 import numpy as np
-from typing import List
+
 from app.config import settings
+
 
 class ClipModelService:
     def __init__(self):
@@ -13,8 +15,7 @@ class ClipModelService:
 
     def load_model(self):
         try:
-            import open_clip  # noqa: F401
-            import torch
+            import open_clip
 
             model, _, preprocess = open_clip.create_model_and_transforms(
                 settings.CLIP_MODEL_NAME,
@@ -28,10 +29,13 @@ class ClipModelService:
             self._is_loaded = True
             print(f"[CLIP] Loaded model {settings.CLIP_MODEL_NAME} on {self.device}")
         except Exception as e:
-            print(f"[CLIP] PyTorch/OpenCLIP not fully initialized or weights missing ({e}). Using deterministic mock embedding.")
+            print(
+                f"[CLIP] PyTorch/OpenCLIP not fully initialized or weights missing ({e}). "
+                "Using deterministic mock embedding."
+            )
             self._is_loaded = False
 
-    def get_text_embedding(self, text: str) -> List[float]:
+    def get_text_embedding(self, text: str) -> list[float]:
         if self._is_loaded and self.model is not None:
             import torch
             with torch.no_grad():
@@ -43,7 +47,7 @@ class ClipModelService:
         # Deterministic normalized vector fallback based on text hash
         return self._generate_fallback_vector(text, settings.VECTOR_DIM)
 
-    def get_image_embedding(self, image_data) -> List[float]:
+    def get_image_embedding(self, image_data) -> list[float]:
         if self._is_loaded and self.model is not None and self.preprocess is not None:
             import torch
             with torch.no_grad():
@@ -55,7 +59,7 @@ class ClipModelService:
         seed_str = str(getattr(image_data, "size", "fallback_image"))
         return self._generate_fallback_vector(seed_str, settings.VECTOR_DIM)
 
-    def _generate_fallback_vector(self, seed_text: str, dim: int) -> List[float]:
+    def _generate_fallback_vector(self, seed_text: str, dim: int) -> list[float]:
         h = int(hashlib.md5(seed_text.encode("utf-8")).hexdigest(), 16)
         rng = np.random.default_rng(h % (2**32))
         vec = rng.standard_normal(dim)

@@ -8,7 +8,7 @@ services:
       - ../apps/api/src:/app/apps/api/src
       - ../packages/contracts/src:/app/packages/contracts/src
       - /app/apps/api/node_modules
-    command: npm run dev --workspace=@lumen/api
+    command: npm run dev --workspace=@novak/api
 
   ai-service:
     build:
@@ -24,11 +24,18 @@ services:
       context: ..
       dockerfile: apps/web/Dockerfile
       target: dev
-    ports:
+    # !override replaces the base "5173:80" mapping instead of appending to it
+    ports: !override
       - "5173:5173"
+    environment:
+      - VITE_PROXY_TARGET=http://api:3000
     volumes:
       - ../apps/web/src:/app/apps/web/src
       - ../apps/web/public:/app/apps/web/public
       - ../packages/contracts/src:/app/packages/contracts/src
       - /app/apps/web/node_modules
-    command: npm run dev --workspace=@lumen/web -- --host 0.0.0.0
+    command: npm run dev --workspace=@novak/web -- --host 0.0.0.0
+
+  nginx:
+    environment:
+      - NOVAK_WEB_UPSTREAM=web:5173

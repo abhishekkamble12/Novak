@@ -1,68 +1,70 @@
-from typing import List, Optional, Dict, Literal
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field
+
 
 def to_camel(string: str) -> str:
     components = string.split("_")
     return components[0] + "".join(x.title() for x in components[1:])
 
-class LumenBaseModel(BaseModel):
+class NovakBaseModel(BaseModel):
     model_config = ConfigDict(
         alias_generator=to_camel,
         populate_by_name=True,
         from_attributes=True,
     )
 
-class ModerationRequest(LumenBaseModel):
-    image_url: Optional[str] = None
-    text: Optional[str] = None
+class ModerationRequest(NovakBaseModel):
+    image_url: str | None = None
+    text: str | None = None
 
-class ModerationResult(LumenBaseModel):
+class ModerationResult(NovakBaseModel):
     is_flagged: bool = False
     status: Literal["approved", "flagged", "rejected"] = "approved"
     confidence: float = 1.0
-    labels: List[str] = Field(default_factory=list)
-    scores: Dict[str, float] = Field(default_factory=dict)
-    reason: Optional[str] = None
+    labels: list[str] = Field(default_factory=list)
+    scores: dict[str, float] = Field(default_factory=dict)
+    reason: str | None = None
 
-class EmbeddingRequest(LumenBaseModel):
-    text: Optional[str] = None
-    image_url: Optional[str] = None
+class EmbeddingRequest(NovakBaseModel):
+    text: str | None = None
+    image_url: str | None = None
 
-class EmbeddingResponse(LumenBaseModel):
-    embedding: List[float]
+class EmbeddingResponse(NovakBaseModel):
+    embedding: list[float]
     dimension: int
     model: str
 
-class PostAnalyzePayload(LumenBaseModel):
+class PostAnalyzePayload(NovakBaseModel):
     post_id: str
     author_id: str
-    author_username: Optional[str] = "user"
+    author_username: str | None = "user"
     media_url: str
     caption: str
     timestamp: float
 
-class PostAnalyzeOutput(LumenBaseModel):
+class PostAnalyzeOutput(NovakBaseModel):
     post_id: str
-    embedding: List[float]
-    tags: List[str]
+    embedding: list[float]
+    tags: list[str]
     moderation: ModerationResult
 
-class SemanticSearchQuery(LumenBaseModel):
+class SemanticSearchQuery(NovakBaseModel):
     query: str
     limit: int = 20
     offset: int = 0
-    filter_tag: Optional[str] = None
+    filter_tag: str | None = None
 
-class SearchResultItem(LumenBaseModel):
+class SearchResultItem(NovakBaseModel):
     post_id: str
     score: float
     caption: str
     media_url: str
     author_username: str
-    tags: List[str]
+    tags: list[str]
 
-class SemanticSearchResponse(LumenBaseModel):
-    results: List[SearchResultItem]
+class SemanticSearchResponse(NovakBaseModel):
+    results: list[SearchResultItem]
     total: int
     query: str
     latency_ms: float

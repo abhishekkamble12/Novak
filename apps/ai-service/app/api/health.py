@@ -1,7 +1,8 @@
 from fastapi import APIRouter
+
 from app.config import settings
-from app.vectorstore.qdrant import qdrant_store
 from app.models.clip_loader import clip_service
+from app.vectorstore.qdrant import qdrant_store
 
 router = APIRouter(tags=["Health"])
 
@@ -12,7 +13,7 @@ async def health_check():
 
     return {
         "status": "healthy" if qdrant_status == "healthy" else "degraded",
-        "service": "lumen-ai-service",
+        "service": "novak-ai-service",
         "env": settings.AI_ENV,
         "components": {
             "qdrant": qdrant_status,

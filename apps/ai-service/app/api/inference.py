@@ -1,22 +1,24 @@
-import time
 import hmac
-from fastapi import APIRouter, HTTPException, Depends, Header
+import time
+
+from fastapi import APIRouter, Depends, Header, HTTPException
 from starlette.concurrency import run_in_threadpool
+
 from app.config import settings
 from app.models.clip_loader import clip_service
 from app.models.moderation import moderation_service
-from app.vectorstore.qdrant import qdrant_store
 from app.schemas.contracts import (
-    ModerationRequest,
-    ModerationResult,
     EmbeddingRequest,
     EmbeddingResponse,
-    PostAnalyzePayload,
+    ModerationRequest,
+    ModerationResult,
     PostAnalyzeOutput,
+    PostAnalyzePayload,
+    SearchResultItem,
     SemanticSearchQuery,
     SemanticSearchResponse,
-    SearchResultItem,
 )
+from app.vectorstore.qdrant import qdrant_store
 
 router = APIRouter(prefix="/api/v1", tags=["AI Inference"])
 
@@ -47,7 +49,11 @@ async def generate_embedding(payload: EmbeddingRequest):
         model=settings.CLIP_MODEL_NAME
     )
 
-@router.post("/analyze-post", response_model=PostAnalyzeOutput, dependencies=[Depends(verify_internal_secret)])
+@router.post(
+    "/analyze-post",
+    response_model=PostAnalyzeOutput,
+    dependencies=[Depends(verify_internal_secret)],
+)
 async def analyze_post_pipeline(payload: PostAnalyzePayload):
     # 1. Moderation check
     mod = await run_in_threadpool(moderation_service.evaluate_text, payload.caption)

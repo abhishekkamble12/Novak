@@ -3,14 +3,14 @@ import { env } from "./env.js";
 import { logger } from "./logger.js";
 
 const sharedRedisOptions: RedisOptions = {
+  // Commands fail after 2 reconnect attempts instead of hanging forever.
+  // Keep the offline queue enabled: rate-limit-redis issues SCRIPT LOAD at import
+  // time, before the connection is ready, and would crash the process otherwise.
   maxRetriesPerRequest: 2,
-  enableOfflineQueue: false,
+  // Upper bound per command so a Redis outage costs ~1s per request, not a reconnect cycle
+  commandTimeout: 1000,
   enableReadyCheck: true,
   retryStrategy(times) {
-    if (times > 5) {
-      logger.error("Redis retry limit reached. Failing fast.");
-      return null;
-    }
     const delay = Math.min(times * 200, 2000);
     logger.warn(`Redis reconnecting, attempt ${times}, waiting ${delay}ms`);
     return delay;

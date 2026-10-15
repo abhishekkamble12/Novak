@@ -1,5 +1,5 @@
 {
-  "name": "@lumen/web",
+  "name": "@novak/web",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -10,7 +10,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
-    "@lumen/contracts": "*",
+    "@novak/contracts": "*",
     "@tanstack/react-query": "^5.45.1",
     "axios": "^1.7.2",
     "clsx": "^2.1.1",

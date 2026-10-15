@@ -1,4 +1,4 @@
-# Lumen — Implementation Plan
+# Novak — Implementation Plan
 
 **Author:** Abhishek  
 **Created:** 2026-10-15  

@@ -190,7 +190,7 @@ export const FeedPage: React.FC = () => {
         <div className="p-4 rounded-xl bg-surface/40 border border-surface-border text-[11px] text-slate-400 space-y-1">
           <div className="flex items-center space-x-1.5 text-pink-400 font-semibold">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Lumen v1.0 Core</span>
+            <span>Novak v1.0 Core</span>
           </div>
           <p>MERN + FastAPI + Qdrant Vector Engine with CLIP 512-dim multimodal embeddings.</p>
         </div>

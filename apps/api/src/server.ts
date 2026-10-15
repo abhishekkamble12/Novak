@@ -13,8 +13,14 @@ async function bootstrap() {
   const app = createApp();
   const httpServer = http.createServer(app);
 
-  const pubClient = redis;
-  const subClient = redis.duplicate();
+  // Socket.IO gets its own pub/sub connections. The adapter calls subscribe() without a
+  // .catch(), so these must queue while Redis is down (no timeout, unlimited retries)
+  // instead of rejecting, which would crash the process with an unhandled rejection.
+  const pubClient = redis.duplicate({ commandTimeout: undefined, maxRetriesPerRequest: null });
+  const subClient = pubClient.duplicate();
+  for (const client of [pubClient, subClient]) {
+    client.on("error", (err) => logger.warn({ err }, "Socket.IO Redis client error"));
+  }
 
   const io = new SocketIOServer(httpServer, {
     cors: {
@@ -32,7 +38,7 @@ async function bootstrap() {
   });
 
   const server = httpServer.listen(env.PORT, () => {
-    logger.info(`Lumen API server running at http://localhost:${env.PORT} in ${env.NODE_ENV} mode`);
+    logger.info(`Novak API server running at http://localhost:${env.PORT} in ${env.NODE_ENV} mode`);
   });
 
   let isShuttingDown = false;
@@ -51,7 +57,7 @@ async function bootstrap() {
       logger.info("HTTP server closed");
       try {
         io.close();
-        await subClient.quit();
+        await Promise.allSettled([pubClient.quit(), subClient.quit()]);
         await disconnectRedis();
         await disconnectDB();
         logger.info("All connections closed. Exiting process.");
@@ -68,6 +74,6 @@ async function bootstrap() {
 }
 
 bootstrap().catch((err) => {
-  logger.fatal({ err }, "Failed to bootstrap Lumen API");
+  logger.fatal({ err }, "Failed to bootstrap Novak API");
   process.exit(1);
 });

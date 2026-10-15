@@ -41,7 +41,7 @@ export const AuthPage: React.FC = () => {
             <Sparkles className="w-6 h-6 text-white" />
           </div>
           <h2 className="font-heading text-2xl font-bold text-white tracking-tight">
-            {isLogin ? "Welcome back to Lumen" : "Join the AI-Native Social Network"}
+            {isLogin ? "Welcome back to Novak" : "Join the AI-Native Social Network"}
           </h2>
           <p className="text-xs text-slate-400">
             {isLogin

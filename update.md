@@ -1,4 +1,4 @@
-# Lumen — Senior Engineering Audit & Upgrade Plan
+# Novak — Senior Engineering Audit & Upgrade Plan
 
 **Audited commit:** `a236b44` (feat: complete Phase 0 monorepo scaffold)
 **Date:** 2026-10-15
@@ -15,7 +15,7 @@ The structure is good: a monorepo with a typed contracts package, a Zod-validate
 | Check | Result | How I verified |
 |---|---|---|
 | `npm ci` (what CI runs) | ❌ **fails**: no `package-lock.json` committed | `git ls-files` |
-| `npm run build -w @lumen/web` | ❌ **fails**: 4 TypeScript errors | ran it on a clean copy |
+| `npm run build -w @novak/web` | ❌ **fails**: 4 TypeScript errors | ran it on a clean copy |
 | `ruff check apps/ai-service` (CI) | ❌ **fails**: 5 errors | ran it |
 | CI Docker build of ai-service | ❌ **fails**: wrong build context | read Dockerfile + ci.yml |
 | `docker compose up` → qdrant healthy | ❌ **never**: image has no `curl`/`wget` | `docker run qdrant/qdrant:latest` |
@@ -24,7 +24,7 @@ The structure is good: a monorepo with a typed contracts package, a Zod-validate
 | Semantic search returns results | ❌ **always `[]`**: `QdrantClient.search()` was removed in qdrant-client ≥1.16 (1.19.1 installed) | installed it and checked |
 | `npm run dev` starts api + web | ❌ only the API starts (workspace scripts run one after another, and `tsx watch` never exits) | npm semantics |
 | `npm run typecheck` contracts + api | ✅ passes | ran it |
-| `npm run build -w @lumen/api` and boot | ✅ compiles and boots (retries DB in the background) | ran it |
+| `npm run build -w @novak/api` and boot | ✅ compiles and boots (retries DB in the background) | ran it |
 
 **Bottom line:** 9 blockers stand between you and a green CI with a stack that boots. All of them are small; most are one-line fixes. Fixing them is the first section below. After that come correctness bugs, security issues and structural improvements, ordered by priority.
 
@@ -139,12 +139,12 @@ FROM deps AS dev
 COPY packages/contracts ./packages/contracts
 COPY apps/web ./apps/web
 EXPOSE 5173
-CMD ["npm", "run", "dev", "--workspace=@lumen/web", "--", "--host", "0.0.0.0"]
+CMD ["npm", "run", "dev", "--workspace=@novak/web", "--", "--host", "0.0.0.0"]
 
 FROM deps AS build
 COPY packages/contracts ./packages/contracts
 COPY apps/web ./apps/web
-RUN npm run build -w @lumen/contracts && npm run build -w @lumen/web
+RUN npm run build -w @novak/contracts && npm run build -w @novak/web
 
 FROM nginx:1.27-alpine AS prod
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
@@ -187,7 +187,7 @@ npm i -D concurrently -w .   # root dev dependency
 ```jsonc
 // root package.json
 "scripts": {
-  "dev": "concurrently -n contracts,api,web,ai -c gray,blue,magenta,green \"npm:dev -w @lumen/contracts\" \"npm:dev -w @lumen/api\" \"npm:dev -w @lumen/web\" \"npm:dev:ai\"",
+  "dev": "concurrently -n contracts,api,web,ai -c gray,blue,magenta,green \"npm:dev -w @novak/contracts\" \"npm:dev -w @novak/api\" \"npm:dev -w @novak/web\" \"npm:dev:ai\"",
   "dev:ai": "cd apps/ai-service && uvicorn app.main:app --reload --port 8000",
   "infra:up": "docker compose -f infra/docker-compose.yml up -d mongo redis qdrant"
 }
@@ -294,11 +294,11 @@ All inference routes are `async def`, but they call **synchronous** torch and th
 ### P1-9. Contract drift: TS (camelCase) vs Python (snake_case)
 `packages/contracts` says `postId`, `imageUrl`, `latencyMs`. The Python models say `post_id`, `image_url`, `latency_ms`. Nothing enforces that they match. Also, the TS `ModerationResponseSchema` has no `reason` field, while Python's does.
 **Fix:** in Python, use `model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)` and serialize `by_alias=True`. Then add a contract test: generate JSON Schema from Zod (`zod-to-json-schema`) and validate FastAPI's OpenAPI against it in CI.
-Also, `@lumen/contracts` is a dependency of api and web but **neither imports it**. `apps/web/src/types/index.ts` re-declares `User`/`Post` by hand. Import the types from contracts.
+Also, `@novak/contracts` is a dependency of api and web but **neither imports it**. `apps/web/src/types/index.ts` re-declares `User`/`Post` by hand. Import the types from contracts.
 
 ### P1-10. Contracts package resolution in dev
-`@lumen/contracts` points `main` at `dist/index.js`, so it only works **after** `npm run build -w @lumen/contracts`. As soon as the API imports it, a fresh clone running `npm run dev` crashes.
-**Fix:** add `"exports"` with a `"development"`/`"types"` condition pointing at `src/index.ts` (tsx and Vite can consume TS directly), or add a root `"predev": "npm run build -w @lumen/contracts"`.
+`@novak/contracts` points `main` at `dist/index.js`, so it only works **after** `npm run build -w @novak/contracts`. As soon as the API imports it, a fresh clone running `npm run dev` crashes.
+**Fix:** add `"exports"` with a `"development"`/`"types"` condition pointing at `src/index.ts` (tsx and Vite can consume TS directly), or add a root `"predev": "npm run build -w @novak/contracts"`.
 
 ### P1-11. Web SPA deep links 404 in production
 The prod web image uses nginx's default config, which has no `try_files`. Refreshing `/explore` gives a 404.
@@ -338,7 +338,7 @@ Mocks are fine for a scaffold, but put them behind `VITE_ENABLE_MOCK` (already i
 | # | Issue | Fix |
 |---|---|---|
 | S1 | JWT secrets have **defaults** in `env.ts`, so production can boot with `development-access-secret...` | In prod require `z.string().min(32)` with no default: `.superRefine` on `NODE_ENV === "production"` |
-| S2 | `jwt.verify` has no algorithm pinning, and the payload is cast blindly | `jwt.verify(token, secret, { algorithms: ["HS256"], issuer: "lumen-api", audience: "lumen-web" })` then validate the payload with Zod |
+| S2 | `jwt.verify` has no algorithm pinning, and the payload is cast blindly | `jwt.verify(token, secret, { algorithms: ["HS256"], issuer: "novak-api", audience: "novak-web" })` then validate the payload with Zod |
 | S3 | Access token in `localStorage` (readable by XSS) | Access token in memory (zustand, not persisted) plus refresh token in an `httpOnly; Secure; SameSite=Strict` cookie scoped to `/api/auth/refresh`, with rotation and reuse detection (already in the Day 4 plan, so keep it) |
 | S4 | AI service auth only runs when `AI_ENV == "production"`; the header name (`X-Api-Secret`) and the env var names (`AI_SERVICE_API_KEY` vs `INTERNAL_API_SECRET`) don't match; comparison is `!=` | Always enforce. Use one name (`INTERNAL_API_SECRET`) in both services and one header (`X-Internal-Secret`). Compare with `hmac.compare_digest` |
 | S5 | AI service has `CORS allow_origins=["*"]` **with** `allow_credentials=True` | It's an internal service: remove CORS entirely, and don't publish port 8000 outside dev |
@@ -379,7 +379,7 @@ Do these in order. Each step is independently committable.
 |---|---|---|
 | 1 | Add `.nvmrc`, `engines`, `.dockerignore`, `.gitignore` additions | files exist |
 | 2 | `npm install` → commit `package-lock.json` | `npm ci` succeeds |
-| 3 | Fix the 4 web TS errors (P0-2) | `npm run build -w @lumen/web` ✅ |
+| 3 | Fix the 4 web TS errors (P0-2) | `npm run build -w @novak/web` ✅ |
 | 4 | `ruff check --fix`, add `[tool.ruff]` (P0-3) | `ruff check apps/ai-service` ✅ |
 | 5 | Pin Python deps with `uv lock`; replace `search` with `query_points` (P0-7, P1-1) | `/api/v1/search` returns hits after an `/analyze-post` |
 | 6 | Compose: remove `version`, pin images, qdrant healthcheck, profiles, `env_file`, api + ai healthchecks (P0-5, P0-9, P0-10, S11) | `docker compose up -d --wait` → mongo/redis/qdrant healthy |
@@ -413,10 +413,10 @@ These are the improvements I'd prioritize over adding more surface area:
 ```bash
 git archive HEAD | tar -x -C <scratch>      # clean copy, no local state
 npm install
-npm run typecheck -w @lumen/contracts       # ✅
-npm run typecheck -w @lumen/api             # ✅
-npm run build -w @lumen/web                 # ❌ 4 errors (P0-2)
-npm run build -w @lumen/contracts && npm run build -w @lumen/api && node apps/api/dist/server.js   # ✅ boots
+npm run typecheck -w @novak/contracts       # ✅
+npm run typecheck -w @novak/api             # ✅
+npm run build -w @novak/web                 # ❌ 4 errors (P0-2)
+npm run build -w @novak/contracts && npm run build -w @novak/api && node apps/api/dist/server.js   # ✅ boots
 python -m ruff check apps/ai-service        # ❌ 5 errors (P0-3)
 docker run --rm --entrypoint sh qdrant/qdrant:latest -c 'command -v curl'   # (none) → P0-5
 docker run --rm --entrypoint sh nginx:alpine -c 'command -v node'           # (none) → P0-6

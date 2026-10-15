@@ -1,18 +1,21 @@
-from typing import List, Dict, Any, Optional
+from typing import Any
+
 from qdrant_client import QdrantClient
 from qdrant_client.http import models as qmodels
+
 from app.config import settings
+
 
 class QdrantVectorStore:
     def __init__(self):
-        self.client: Optional[QdrantClient] = None
+        self.client: QdrantClient | None = None
 
     def connect(self):
         try:
             self.client = QdrantClient(
                 host=settings.QDRANT_HOST,
                 port=settings.QDRANT_PORT,
-                api_key=settings.QDRANT_API_KEY,
+                api_key=settings.QDRANT_API_KEY or None,  # "" from .env would force HTTPS
                 timeout=5.0
             )
             self.ensure_collection()
@@ -41,7 +44,7 @@ class QdrantVectorStore:
         except Exception as e:
             print(f"[Qdrant] Collection check warning: {e}")
 
-    def upsert_post(self, post_id: str, vector: List[float], payload: Dict[str, Any]):
+    def upsert_post(self, post_id: str, vector: list[float], payload: dict[str, Any]):
         if not self.client:
             return False
 
@@ -66,11 +69,11 @@ class QdrantVectorStore:
 
     def search_posts(
         self,
-        vector: List[float],
+        vector: list[float],
         limit: int = 20,
         offset: int = 0,
-        filter_tag: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+        filter_tag: str | None = None
+    ) -> list[dict[str, Any]]:
         if not self.client:
             return []
 

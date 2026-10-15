@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCreateModal }) => {
             </div>
             <div>
               <span className="font-heading text-2xl font-extrabold tracking-tight text-white group-hover:text-pink-400 transition-colors">
-                Lumen
+                Novak
               </span>
               <span className="block text-[10px] tracking-wider uppercase text-pink-400/80 font-semibold">
                 AI Social Network

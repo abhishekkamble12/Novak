@@ -8,7 +8,7 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("lumen_access_token");
+  const token = localStorage.getItem("novak_access_token");
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }

@@ -1,7 +1,7 @@
 [project]
-name = "lumen-ai-service"
+name = "novak-ai-service"
 version = "0.1.0"
-description = "Lumen AI Service — CLIP embeddings, Qdrant semantic search, and safety moderation"
+description = "Novak AI Service — CLIP embeddings, Qdrant semantic search, and safety moderation"
 authors = [{ name = "Abhishek" }]
 requires-python = ">=3.11"
 dependencies = [

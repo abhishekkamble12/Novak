@@ -7,7 +7,7 @@ Accepted
 2026-10-15
 
 ## Context
-Lumen comprises multiple heterogeneous services:
+Novak comprises multiple heterogeneous services:
 1. Node.js Express API service
 2. Python FastAPI AI service with machine learning dependencies (CLIP, Qdrant client)
 3. React Vite frontend

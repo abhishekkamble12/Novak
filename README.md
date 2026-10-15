@@ -1,6 +1,6 @@
-# Lumen — AI-Native Multimodal Social Platform
+# Novak — AI-Native Multimodal Social Platform
 
-Lumen is an Instagram-scale, AI-native social platform designed with a high-performance distributed architecture. It integrates asynchronous computer vision pipelines (OpenCLIP), semantic visual search, intelligent feed ranking, automated toxicity & NSFW moderation guardrails, and real-time social interactions.
+Novak is an Instagram-scale, AI-native social platform designed with a high-performance distributed architecture. It integrates asynchronous computer vision pipelines (OpenCLIP), semantic visual search, intelligent feed ranking, automated toxicity & NSFW moderation guardrails, and real-time social interactions.
 
 ---
 
@@ -49,7 +49,7 @@ Lumen is an Instagram-scale, AI-native social platform designed with a high-perf
 - **Asynchronous AI Pipeline**: Non-blocking post creation (<50ms p95 latency) decoupling user uploads from heavy computer vision inference via Redis and BullMQ.
 - **Automated Content Guardrails**: Text toxicity, hate speech, spam, and visual safety moderation pre-filtering before vector indexing.
 - **Modern Dark Aesthetic**: Sleek glassmorphism, responsive navigation (desktop sidebar & mobile bottom bar), and double-tap micro-animations.
-- **Shared Type Safety**: Monorepo contracts (`@lumen/contracts`) enforcing Zod request/response validation across both TypeScript and Python services.
+- **Shared Type Safety**: Monorepo contracts (`@novak/contracts`) enforcing Zod request/response validation across both TypeScript and Python services.
 - **Production-Ready Infra**: Multi-stage Dockerfiles, Docker Compose profiles, health checks, Redis connection pooling with fail-fast degradation, and automated CI.
 
 ---
@@ -57,7 +57,7 @@ Lumen is an Instagram-scale, AI-native social platform designed with a high-perf
 ## 📁 Repository Structure
 
 ```
-lumen/
+novak/
 ├── apps/
 │   ├── web/                     # React 18 + Vite + TypeScript + Tailwind CSS
 │   │   ├── src/components/      # UI components (Navbar, PostCard, StoriesBar, CreatePostModal)
@@ -103,8 +103,8 @@ Ensure you have the following installed on your machine:
 ### 2. Clone & Setup Environment
 ```bash
 # 1. Clone repository
-git clone https://github.com/<your-username>/lumen.git
-cd lumen
+git clone https://github.com/<your-username>/novak.git
+cd novak
 
 # 2. Create local environment file
 cp .env.example .env
@@ -123,7 +123,7 @@ npm run infra:up
 npm install
 
 # Build shared contracts package
-npm run build --workspace=@lumen/contracts
+npm run build --workspace=@novak/contracts
 ```
 
 For the Python AI service:
@@ -161,7 +161,7 @@ npm run dev:ai
 | **FastAPI Service** | `http://localhost:8000` | `8000` | CLIP inference & Qdrant bridge |
 | **AI Health** | `http://localhost:8000/health` | `8000` | Checks Qdrant & model status |
 | **Qdrant Dashboard** | `http://localhost:6333/dashboard` | `6333` | Vector collection explorer |
-| **MongoDB** | `mongodb://localhost:27017/lumen` | `27017` | Document database |
+| **MongoDB** | `mongodb://localhost:27017/novak` | `27017` | Document database |
 | **Redis** | `redis://localhost:6379` | `6379` | Cache & BullMQ message broker |
 | **Nginx (Proxy)** | `http://localhost:80` | `80` | Production gateway |
 
@@ -204,7 +204,7 @@ npm run infra:down
 1. **Post Ingestion**: User publishes media with caption → API records post as `moderationStatus: 'pending'` and enqueues `PostAnalyzeJob` to BullMQ.
 2. **Safety Moderation**: Content is evaluated by regex word-boundary guardrails and toxicity models (`apps/ai-service/app/models/moderation.py`).
 3. **Multimodal Embeddings**: OpenCLIP extracts a 512-dimensional normalized feature vector from the text and image.
-4. **Vector Indexing**: The vector is upserted into Qdrant (`lumen_posts_v1` collection) alongside author metadata and discoverable tags.
+4. **Vector Indexing**: The vector is upserted into Qdrant (`novak_posts_v1` collection) alongside author metadata and discoverable tags.
 5. **Real-Time Notification**: Status is updated in MongoDB and pushed to the client via Socket.IO (`post:processed`).
 6. **Semantic Querying**: Queries in Explore (`POST /api/v1/search`) are vectorized into the same latent space and queried against Qdrant using cosine similarity (`query_points`).
 

@@ -1,7 +1,7 @@
-Lumen: AI-Native Social Platform (MERN + Python)
+Novak: AI-Native Social Platform (MERN + Python)
 Project Design Document | Target: Full-Stack / SDE roles | Author: Abhishek
 1. Overview
-Lumen is an Instagram-style social platform where AI is part of the core architecture, not a bolt-on. The Node.js backend owns the product domain (auth, posts, feed, chat, notifications). A separate Python FastAPI service owns the ML workloads (captioning, moderation, semantic search, ranking, RAG). The two communicate asynchronously through a Redis-backed queue.
+Novak is an Instagram-style social platform where AI is part of the core architecture, not a bolt-on. The Node.js backend owns the product domain (auth, posts, feed, chat, notifications). A separate Python FastAPI service owns the ML workloads (captioning, moderation, semantic search, ranking, RAG). The two communicate asynchronously through a Redis-backed queue.
 One-line pitch: A distributed social platform with CLIP-based semantic image search, an async AI pipeline, and an embedding-based feed ranker, benchmarked with real latency and quality numbers.
 1.1 Goals
 • Demonstrate full-stack depth: React, Node, MongoDB, Redis, WebSockets.
@@ -14,7 +14,7 @@ One-line pitch: A distributed social platform with CLIP-based semantic image sea
 • Pixel-perfect Instagram UI.
 • Training models from scratch. Use pretrained models and focus on integration and evaluation.
 1.3 Why this is not "just another clone"
-A clone shows CRUD. Lumen shows tradeoffs: fan-out strategy, cache invalidation, queue semantics (retries, idempotency, DLQ), embedding drift, ranking evaluation. Every one of those is an interview question you can answer from your own code.
+A clone shows CRUD. Novak shows tradeoffs: fan-out strategy, cache invalidation, queue semantics (retries, idempotency, DLQ), embedding drift, ranking evaluation. Every one of those is an interview question you can answer from your own code.
 2. Tech Stack
 Layer
 Choice
@@ -288,7 +288,7 @@ Target: 70%+ coverage on core business logic. CI must be green with a visible ba
 • Cost note: CLIP on CPU is fine for a portfolio-scale index (tens of thousands of images). Document that GPU would be the production choice.
 • Environments: dev and prod configs; migrations via a simple script or migrate-mongo.
 14. Repository Structure
-lumen/
+novak/
   apps/
     web/                  # React + Vite
       src/{components,pages,hooks,store,api,lib}
@@ -373,7 +373,7 @@ Free-tier or small models for dev, strict quotas, response caching
 8. Testing and CI badges.
 9. Known limitations and what you would do at 100x scale.
 20. Resume Bullets (templates; fill with real numbers)
-• Built Lumen, a full-stack social platform (React, Node, MongoDB, Redis, FastAPI) with an async AI pipeline processing uploads through moderation, embedding, and captioning in a median of X seconds.
+• Built Novak, a full-stack social platform (React, Node, MongoDB, Redis, FastAPI) with an async AI pipeline processing uploads through moderation, embedding, and captioning in a median of X seconds.
 • Implemented CLIP-based semantic image search over N images with Qdrant; hybrid retrieval improved precision@10 from A to B versus keyword search.
 • Designed hybrid fan-out feed with Redis caching, cutting feed p95 latency from X ms to Y ms at Z concurrent users (k6).
 • Added embedding-based feed ranking; simulated A/B showed +X% like-rate versus chronological.

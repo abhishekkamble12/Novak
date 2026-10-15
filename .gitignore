@@ -1,4 +1,4 @@
-# Lumen .gitignore
+# Novak .gitignore
 node_modules/
 dist/
 build/
