@@ -10,6 +10,8 @@ const sharedRedisOptions: RedisOptions = {
   // Upper bound per command so a Redis outage costs ~1s per request, not a reconnect cycle
   commandTimeout: 1000,
   enableReadyCheck: true,
+  // Railway's private network is IPv6-only; family 0 resolves both IPv4 and IPv6
+  family: 0,
   retryStrategy(times) {
     const delay = Math.min(times * 200, 2000);
     logger.warn(`Redis reconnecting, attempt ${times}, waiting ${delay}ms`);
@@ -30,10 +32,13 @@ redis.on("error", (err) => {
 
 // Dedicated factory for BullMQ which requires maxRetriesPerRequest: null
 export function createBullConnection(): Redis {
-  return new Redis(env.REDIS_URL, {
+  const connection = new Redis(env.REDIS_URL, {
     maxRetriesPerRequest: null,
     enableReadyCheck: true,
+    family: 0,
   });
+  connection.on("error", (err) => logger.warn({ err }, "BullMQ Redis connection error"));
+  return connection;
 }
 
 export async function disconnectRedis(): Promise<void> {

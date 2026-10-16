@@ -30,6 +30,8 @@ services:
       retries: 5
 
   qdrant:
+    # Fresh setups can use v1.19.1 (matches qdrant-client). Existing v1.12 volumes can't skip
+    # minor versions; reset with `docker volume rm infra_qdrant_data` before upgrading.
     image: qdrant/qdrant:v1.12.1
     container_name: novak-qdrant
     restart: unless-stopped
@@ -85,14 +87,14 @@ services:
         required: false
     environment:
       - AI_ENV=development
-      - AI_PORT=8000
+      # .env's PORT belongs to the API; pin the AI service's own port and bind address
+      - PORT=8000
+      - AI_HOST=0.0.0.0
+      - QDRANT_URL=
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
-      - REDIS_URL=redis://redis:6379
     depends_on:
       qdrant:
-        condition: service_healthy
-      redis:
         condition: service_healthy
 
   web:

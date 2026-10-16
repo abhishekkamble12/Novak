@@ -26,15 +26,6 @@ class ModerationResult(NovakBaseModel):
     scores: dict[str, float] = Field(default_factory=dict)
     reason: str | None = None
 
-class EmbeddingRequest(NovakBaseModel):
-    text: str | None = None
-    image_url: str | None = None
-
-class EmbeddingResponse(NovakBaseModel):
-    embedding: list[float]
-    dimension: int
-    model: str
-
 class PostAnalyzePayload(NovakBaseModel):
     post_id: str
     author_id: str
@@ -45,8 +36,8 @@ class PostAnalyzePayload(NovakBaseModel):
 
 class PostAnalyzeOutput(NovakBaseModel):
     post_id: str
-    embedding: list[float]
     tags: list[str]
+    indexed: bool
     moderation: ModerationResult
 
 class SemanticSearchQuery(NovakBaseModel):

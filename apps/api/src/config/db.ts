@@ -19,12 +19,13 @@ export async function connectDB(): Promise<void> {
   try {
     mongoose.set("strictQuery", true);
     await mongoose.connect(env.MONGO_URI, {
+      dbName: env.MONGO_DB_NAME,
       maxPoolSize: 50,
-      minPoolSize: 5,
+      minPoolSize: 2,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     });
-    logger.info("Connected to MongoDB database successfully");
+    logger.info({ dbName: env.MONGO_DB_NAME }, "Connected to MongoDB database successfully");
   } catch (error) {
     logger.error({ err: error }, "MongoDB initial connection failed. Scheduling retry in 5s...");
     setTimeout(connectDB, 5000);

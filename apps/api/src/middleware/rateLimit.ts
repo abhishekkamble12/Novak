@@ -23,7 +23,7 @@ export const globalRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   passOnStoreError: true, // Degrade gracefully if Redis is temporarily unreachable
-  skip: (req) => req.path === "/api/health",
+  skip: (req) => req.path.startsWith("/api/health"),
   store: createRedisStore("rl:global:"),
   handler: (_req, _res, next) => {
     next(new RateLimitError("Too many requests from this IP. Please try again after 15 minutes."));

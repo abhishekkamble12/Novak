@@ -5,6 +5,11 @@ import { sendSuccess } from "../../utils/responseEnvelope.js";
 
 const router = Router();
 
+// Liveness: the process is up. Readiness (/health) also checks Mongo and Redis.
+router.get("/health/live", (_req: Request, res: Response) => {
+  sendSuccess(res, { status: "alive", uptime: process.uptime() });
+});
+
 router.get("/health", async (_req: Request, res: Response) => {
   const mongoStatus = mongoose.connection.readyState === 1 ? "healthy" : "unhealthy";
   let redisStatus = "unhealthy";

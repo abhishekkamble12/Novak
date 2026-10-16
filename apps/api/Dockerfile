@@ -39,6 +39,6 @@ COPY --from=build /app/apps/api/dist ./apps/api/dist
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=5s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
+  CMD curl -fs "http://localhost:${PORT:-3000}/api/health/live" || exit 1
 
 CMD ["node", "apps/api/dist/server.js"]

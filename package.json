@@ -16,7 +16,6 @@
     "dev": "concurrently -n contracts,api,web -c gray,blue,magenta \"npm run dev --workspace=@novak/contracts\" \"npm run dev --workspace=@novak/api\" \"npm run dev --workspace=@novak/web\"",
     "dev:ai": "cd apps/ai-service && uvicorn app.main:app --reload --port 8000",
     "build": "npm run build --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspace=@novak/contracts && npm run typecheck --workspace=@novak/api && npm run build --workspace=@novak/web",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d mongo redis qdrant",

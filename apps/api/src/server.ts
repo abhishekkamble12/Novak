@@ -1,44 +1,27 @@
 import http from "node:http";
-import { Server as SocketIOServer } from "socket.io";
-import { createAdapter } from "@socket.io/redis-adapter";
-import { createApp } from "./app.js";
+import { createApp, isAllowedOrigin } from "./app.js";
 import { env } from "./config/env.js";
 import { logger } from "./config/logger.js";
 import { connectDB, disconnectDB } from "./config/db.js";
-import { redis, disconnectRedis } from "./config/redis.js";
+import { disconnectRedis } from "./config/redis.js";
+import { createSocketServer } from "./realtime/socket.js";
+import { closePostAnalysis, startPostAnalysisWorker } from "./modules/ai/postAnalysis.queue.js";
 
 async function bootstrap() {
   await connectDB();
 
   const app = createApp();
   const httpServer = http.createServer(app);
+  const sockets = createSocketServer(httpServer, isAllowedOrigin);
 
-  // Socket.IO gets its own pub/sub connections. The adapter calls subscribe() without a
-  // .catch(), so these must queue while Redis is down (no timeout, unlimited retries)
-  // instead of rejecting, which would crash the process with an unhandled rejection.
-  const pubClient = redis.duplicate({ commandTimeout: undefined, maxRetriesPerRequest: null });
-  const subClient = pubClient.duplicate();
-  for (const client of [pubClient, subClient]) {
-    client.on("error", (err) => logger.warn({ err }, "Socket.IO Redis client error"));
+  if (env.ENABLE_WORKER) {
+    startPostAnalysisWorker();
   }
 
-  const io = new SocketIOServer(httpServer, {
-    cors: {
-      origin: env.CORS_ORIGIN.split(",").map((o) => o.trim()),
-      credentials: true,
-    },
-    adapter: createAdapter(pubClient, subClient),
-  });
-
-  io.on("connection", (socket) => {
-    logger.debug({ socketId: socket.id }, "Socket connected");
-    socket.on("disconnect", (reason) => {
-      logger.debug({ socketId: socket.id, reason }, "Socket disconnected");
-    });
-  });
-
+  // Binding without a host listens on "::", i.e. IPv4 and IPv6. Railway's private
+  // network is IPv6-only, so this matters there.
   const server = httpServer.listen(env.PORT, () => {
-    logger.info(`Novak API server running at http://localhost:${env.PORT} in ${env.NODE_ENV} mode`);
+    logger.info(`Novak API listening on port ${env.PORT} in ${env.NODE_ENV} mode`);
   });
 
   let isShuttingDown = false;
@@ -56,8 +39,8 @@ async function bootstrap() {
     server.close(async () => {
       logger.info("HTTP server closed");
       try {
-        io.close();
-        await Promise.allSettled([pubClient.quit(), subClient.quit()]);
+        await sockets.close();
+        await closePostAnalysis();
         await disconnectRedis();
         await disconnectDB();
         logger.info("All connections closed. Exiting process.");
@@ -72,6 +55,11 @@ async function bootstrap() {
   process.on("SIGTERM", () => shutdown("SIGTERM"));
   process.on("SIGINT", () => shutdown("SIGINT"));
 }
+
+process.on("unhandledRejection", (reason) => {
+  // Log loudly but keep serving: one failed background promise shouldn't take the API down
+  logger.error({ err: reason }, "Unhandled promise rejection");
+});
 
 bootstrap().catch((err) => {
   logger.fatal({ err }, "Failed to bootstrap Novak API");

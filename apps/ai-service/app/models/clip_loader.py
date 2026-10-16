@@ -1,11 +1,17 @@
-import hashlib
+import io
 
 import numpy as np
+from PIL import Image
 
 from app.config import settings
 
 
 class ClipModelService:
+    """OpenCLIP wrapper. Image and text embeddings share one vector space, so a text query
+    can be matched against image vectors. When torch/open_clip aren't installed the service
+    runs without embeddings: moderation still works, semantic search reports unavailable and
+    the API falls back to keyword search."""
+
     def __init__(self):
         self.device = settings.DEVICE
         self.model = None
@@ -13,59 +19,55 @@ class ClipModelService:
         self.tokenizer = None
         self._is_loaded = False
 
+    @property
+    def is_loaded(self) -> bool:
+        return self._is_loaded
+
     def load_model(self):
         try:
             import open_clip
 
             model, _, preprocess = open_clip.create_model_and_transforms(
-                settings.CLIP_MODEL_NAME,
-                pretrained=settings.CLIP_PRETRAINED,
-                device=self.device
+                settings.CLIP_MODEL_NAME, pretrained=settings.CLIP_PRETRAINED, device=self.device
             )
-            tokenizer = open_clip.get_tokenizer(settings.CLIP_MODEL_NAME)
+            model.eval()
             self.model = model
             self.preprocess = preprocess
-            self.tokenizer = tokenizer
+            self.tokenizer = open_clip.get_tokenizer(settings.CLIP_MODEL_NAME)
             self._is_loaded = True
             print(f"[CLIP] Loaded model {settings.CLIP_MODEL_NAME} on {self.device}")
         except Exception as e:
-            print(
-                f"[CLIP] PyTorch/OpenCLIP not fully initialized or weights missing ({e}). "
-                "Using deterministic mock embedding."
-            )
+            print(f"[CLIP] Model not available ({e}). Running without embeddings.")
             self._is_loaded = False
 
     def get_text_embedding(self, text: str) -> list[float]:
-        if self._is_loaded and self.model is not None:
-            import torch
-            with torch.no_grad():
-                tokens = self.tokenizer([text]).to(self.device)
-                features = self.model.encode_text(tokens)
-                features /= features.norm(dim=-1, keepdim=True)
-                return features.cpu().numpy()[0].tolist()
+        import torch
 
-        # Deterministic normalized vector fallback based on text hash
-        return self._generate_fallback_vector(text, settings.VECTOR_DIM)
+        with torch.no_grad():
+            tokens = self.tokenizer([text]).to(self.device)
+            features = self.model.encode_text(tokens)
+            features /= features.norm(dim=-1, keepdim=True)
+            return features.cpu().numpy()[0].tolist()
 
-    def get_image_embedding(self, image_data) -> list[float]:
-        if self._is_loaded and self.model is not None and self.preprocess is not None:
-            import torch
-            with torch.no_grad():
-                tensor = self.preprocess(image_data).unsqueeze(0).to(self.device)
-                features = self.model.encode_image(tensor)
-                features /= features.norm(dim=-1, keepdim=True)
-                return features.cpu().numpy()[0].tolist()
+    def get_image_embedding(self, image_bytes: bytes) -> list[float]:
+        import torch
 
-        seed_str = str(getattr(image_data, "size", "fallback_image"))
-        return self._generate_fallback_vector(seed_str, settings.VECTOR_DIM)
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        with torch.no_grad():
+            tensor = self.preprocess(image).unsqueeze(0).to(self.device)
+            features = self.model.encode_image(tensor)
+            features /= features.norm(dim=-1, keepdim=True)
+            return features.cpu().numpy()[0].tolist()
 
-    def _generate_fallback_vector(self, seed_text: str, dim: int) -> list[float]:
-        h = int(hashlib.md5(seed_text.encode("utf-8")).hexdigest(), 16)
-        rng = np.random.default_rng(h % (2**32))
-        vec = rng.standard_normal(dim)
-        norm = np.linalg.norm(vec)
-        if norm > 0:
-            vec = vec / norm
-        return vec.tolist()
+    def get_post_embedding(self, image_vec: list[float], caption: str) -> list[float]:
+        """The image vector, nudged towards the caption so search also matches what the
+        author wrote. Weighted towards the image, which is the post's primary content."""
+        if not caption.strip():
+            return image_vec
+        # CLIP's text encoder takes 77 tokens; the tokenizer truncates, this just bounds work
+        text_vec = np.array(self.get_text_embedding(caption[:300]))
+        combined = 0.7 * np.array(image_vec) + 0.3 * text_vec
+        return (combined / np.linalg.norm(combined)).tolist()
+
 
 clip_service = ClipModelService()

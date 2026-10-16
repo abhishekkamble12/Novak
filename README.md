@@ -60,8 +60,8 @@ Novak is an Instagram-scale, AI-native social platform designed with a high-perf
 novak/
 ├── apps/
 │   ├── web/                     # React 18 + Vite + TypeScript + Tailwind CSS
-│   │   ├── src/components/      # UI components (Navbar, PostCard, StoriesBar, CreatePostModal)
-│   │   ├── src/pages/           # FeedPage, ExplorePage, AuthPage
+│   │   ├── src/components/      # UI components (Navbar, PostCard, PostGrid, CreatePostModal)
+│   │   ├── src/pages/           # Feed, Explore, Auth, Profile, Post pages
 │   │   ├── src/lib/             # Axios client with JWT auth interceptors
 │   │   ├── src/store/           # Zustand state management
 │   │   └── Dockerfile           # Multi-stage container (deps, dev, build, prod)
@@ -88,6 +88,14 @@ novak/
 ├── .env.example                 # Documented environment template
 └── package.json                 # Monorepo workspaces configuration
 ```
+
+---
+
+## ☁️ Deploying
+
+The web app deploys to **Vercel** and the API, AI service and databases to **Railway**.
+Config is in the repo (`apps/web/vercel.json`, `apps/api/railway.json`, `apps/ai-service/railway.json`).
+Follow **[DEPLOYMENT.md](DEPLOYMENT.md)** for the step-by-step setup and the variables each service needs.
 
 ---
 

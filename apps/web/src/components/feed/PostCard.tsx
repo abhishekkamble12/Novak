@@ -1,172 +1,234 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Heart,
-  MessageCircle,
-  Share2,
-  Bookmark,
-  Sparkles,
-  ShieldCheck,
+  Link2,
+  Loader2,
   MoreHorizontal,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
 } from "lucide-react";
-import { Post } from "../../types";
+import type { PostDto } from "@novak/contracts";
+import { errorMessage, postsApi } from "../../lib/api";
+import { compactNumber, timeAgo } from "../../lib/format";
+import { removePost, updatePost } from "../../lib/postCache";
+import { useAuthStore } from "../../store/useAuthStore";
+import { Avatar } from "../ui/Avatar";
 
-interface PostCardProps {
-  post: Post;
-  onLike?: (postId: string) => void;
-  onSave?: (postId: string) => void;
-}
+const StatusBadge: React.FC<{ post: PostDto }> = ({ post }) => {
+  switch (post.moderationStatus) {
+    case "approved":
+      return (
+        <span title="Checked by AI moderation">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" aria-label="Checked by AI moderation" />
+        </span>
+      );
+    case "pending":
+      return (
+        <span className="flex items-center gap-1 text-[10px] font-semibold text-sky-300 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded-full">
+          <Loader2 className="w-3 h-3 animate-spin" /> AI analyzing
+        </span>
+      );
+    default:
+      // Only the author ever sees their own flagged posts
+      return (
+        <span
+          title={post.moderationReason}
+          className="flex items-center gap-1 text-[10px] font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full"
+        >
+          <ShieldAlert className="w-3 h-3" /> Under review · only you can see this
+        </span>
+      );
+  }
+};
 
-export const PostCard: React.FC<PostCardProps> = ({ post, onLike, onSave }) => {
-  const [isLiked, setIsLiked] = useState(post.hasLiked);
-  const [likesCount, setLikesCount] = useState(post.likesCount);
-  const [isSaved, setIsSaved] = useState(post.hasSaved);
-  const [showHeartBurst, setShowHeartBurst] = useState(false);
+export const PostCard: React.FC<{ post: PostDto }> = ({ post }) => {
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const viewer = useAuthStore((s) => s.user);
+  const isOwner = viewer?.id === post.authorId;
+  const [burst, setBurst] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const handleLikeToggle = () => {
-    const nextLiked = !isLiked;
-    setIsLiked(nextLiked);
-    setLikesCount((prev) => (nextLiked ? prev + 1 : prev - 1));
-    if (onLike) onLike(post.id);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = (e: MouseEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [menuOpen]);
+
+  const flash = (message: string) => {
+    setNotice(message);
+    setTimeout(() => setNotice(null), 2500);
   };
 
-  const handleDoubleTap = () => {
-    if (!isLiked) {
-      setIsLiked(true);
-      setLikesCount((prev) => prev + 1);
-      if (onLike) onLike(post.id);
+  const like = useMutation({
+    mutationFn: (liked: boolean) => (liked ? postsApi.like(post.id) : postsApi.unlike(post.id)),
+    onMutate: (liked) => {
+      const previous = { hasLiked: post.hasLiked, likesCount: post.likesCount };
+      updatePost(qc, post.id, (p) => ({
+        ...p,
+        hasLiked: liked,
+        likesCount: Math.max(0, p.likesCount + (liked ? 1 : -1)),
+      }));
+      return previous;
+    },
+    onSuccess: (res) => updatePost(qc, post.id, (p) => ({ ...p, hasLiked: res.liked, likesCount: res.likesCount })),
+    onError: (err, _liked, previous) => {
+      if (previous) updatePost(qc, post.id, (p) => ({ ...p, ...previous }));
+      flash(errorMessage(err));
+    },
+  });
+
+  const remove = useMutation({
+    mutationFn: () => postsApi.remove(post.id),
+    onSuccess: () => {
+      removePost(qc, post.id);
+      if (viewer) {
+        useAuthStore.getState().setUser({ ...viewer, postsCount: Math.max(0, viewer.postsCount - 1) });
+      }
+    },
+    onError: (err) => flash(errorMessage(err)),
+  });
+
+  const toggleLike = (liked: boolean) => {
+    if (!viewer) {
+      navigate("/auth");
+      return;
     }
-    setShowHeartBurst(true);
-    setTimeout(() => setShowHeartBurst(false), 800);
+    if (!like.isPending) like.mutate(liked);
   };
 
-  const handleSaveToggle = () => {
-    setIsSaved(!isSaved);
-    if (onSave) onSave(post.id);
+  const handleDoubleClick = () => {
+    if (!post.hasLiked) toggleLike(true);
+    setBurst(true);
+    setTimeout(() => setBurst(false), 700);
   };
+
+  const copyLink = async () => {
+    setMenuOpen(false);
+    const url = `${window.location.origin}/p/${post.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      flash("Link copied");
+    } catch {
+      flash(url);
+    }
+  };
+
+  const tags = [...new Set([...post.tags, ...post.aiTags])];
 
   return (
-    <article className="glass-panel rounded-2xl border border-surface-border overflow-hidden mb-6 transition-all duration-300 hover:border-slate-700/60 shadow-glass">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center space-x-3">
-          <img
-            src={post.authorAvatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"}
-            alt={post.authorUsername}
-            className="w-10 h-10 rounded-full object-cover ring-2 ring-brand-500/30"
-          />
-          <div>
-            <div className="flex items-center space-x-1.5">
-              <span className="font-semibold text-sm text-white hover:underline cursor-pointer">
+    <article className="glass-panel rounded-2xl overflow-hidden shadow-glass">
+      <header className="flex items-center justify-between p-4">
+        <Link to={`/u/${post.authorUsername}`} className="flex items-center gap-3 min-w-0">
+          <Avatar src={post.authorAvatarUrl} name={post.authorName} />
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="font-semibold text-sm text-white hover:underline truncate">
                 {post.authorUsername}
               </span>
-              {post.moderationStatus === "approved" && (
-                <span title="Content verified safe by AI Moderation">
-                  <ShieldCheck
-                    className="w-4 h-4 text-emerald-400"
-                    aria-label="Verified safe"
-                  />
-                </span>
+              <StatusBadge post={post} />
+            </div>
+            <span className="text-[11px] text-slate-400">{timeAgo(post.createdAt)}</span>
+          </div>
+        </Link>
+
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            className="text-slate-400 hover:text-white p-1 rounded-lg"
+            aria-label="Post options"
+          >
+            <MoreHorizontal className="w-5 h-5" />
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 mt-1 w-44 glass-panel rounded-xl py-1 z-20 shadow-glass text-sm">
+              <button onClick={copyLink} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-surface">
+                <Link2 className="w-4 h-4" /> Copy link
+              </button>
+              {isOwner && (
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    if (window.confirm("Delete this post? This can't be undone.")) remove.mutate();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-rose-400 hover:bg-surface"
+                >
+                  <Trash2 className="w-4 h-4" /> Delete post
+                </button>
               )}
             </div>
-            <span className="text-[11px] text-slate-400">
-              {new Date(post.createdAt).toLocaleDateString(undefined, {
-                month: "short",
-                day: "numeric",
-              })}
-            </span>
-          </div>
+          )}
         </div>
+      </header>
 
-        <button className="text-slate-400 hover:text-white p-1 rounded-lg">
-          <MoreHorizontal className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Media with Double-tap gesture */}
-      <div
-        className="relative bg-black select-none overflow-hidden cursor-pointer"
-        onDoubleClick={handleDoubleTap}
-      >
+      <div className="relative bg-black select-none" onDoubleClick={handleDoubleClick}>
         <img
           src={post.mediaUrl}
-          alt={post.caption}
-          className="w-full object-cover max-h-[580px] transition-transform duration-500 hover:scale-[1.01]"
+          alt={post.caption || `Post by ${post.authorUsername}`}
+          className="w-full object-cover max-h-[640px]"
+          style={{ aspectRatio: String(Math.min(Math.max(post.aspectRatio, 0.8), 1.91)) }}
           loading="lazy"
         />
-
-        {/* Heart Burst Animation */}
-        {showHeartBurst && (
+        {burst && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none animate-ping">
-            <Heart className="w-24 h-24 text-rose-500 fill-rose-500 drop-shadow-neon" />
+            <Heart className="w-24 h-24 text-rose-500 fill-rose-500" />
           </div>
         )}
-
-        {/* AI Tag Overlay Badges */}
-        {post.aiTags && post.aiTags.length > 0 && (
-          <div className="absolute bottom-3 left-3 flex flex-wrap gap-1.5 pointer-events-none">
-            {post.aiTags.map((tag) => (
-              <span
-                key={tag}
-                className="flex items-center space-x-1 text-[11px] font-medium bg-black/60 backdrop-blur-md text-pink-300 px-2.5 py-1 rounded-full border border-pink-500/20"
-              >
-                <Sparkles className="w-3 h-3 text-pink-400" />
-                <span>#{tag}</span>
-              </span>
-            ))}
+        {remove.isPending && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-white" />
           </div>
         )}
       </div>
 
-      {/* Action Bar */}
-      <div className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={handleLikeToggle}
-              className={`p-1 transition-transform active:scale-125 ${
-                isLiked ? "text-rose-500" : "text-slate-300 hover:text-white"
-              }`}
-            >
-              <Heart
-                className={`w-6 h-6 ${isLiked ? "fill-rose-500 stroke-rose-500" : ""}`}
-              />
-            </button>
-            <button className="text-slate-300 hover:text-white p-1 transition-colors">
-              <MessageCircle className="w-6 h-6" />
-            </button>
-            <button className="text-slate-300 hover:text-white p-1 transition-colors">
-              <Share2 className="w-6 h-6" />
-            </button>
-          </div>
-
+      <div className="p-4 space-y-2.5">
+        <div className="flex items-center gap-3">
           <button
-            onClick={handleSaveToggle}
-            className={`p-1 transition-colors ${
-              isSaved ? "text-amber-400" : "text-slate-300 hover:text-white"
+            onClick={() => toggleLike(!post.hasLiked)}
+            className={`p-1 -ml-1 transition-transform active:scale-125 ${
+              post.hasLiked ? "text-rose-500" : "text-slate-300 hover:text-white"
             }`}
+            aria-pressed={post.hasLiked}
+            aria-label={post.hasLiked ? "Unlike" : "Like"}
           >
-            <Bookmark
-              className={`w-6 h-6 ${isSaved ? "fill-amber-400 stroke-amber-400" : ""}`}
-            />
+            <Heart className={`w-6 h-6 ${post.hasLiked ? "fill-rose-500" : ""}`} />
           </button>
+          <span className="text-sm font-semibold text-white">
+            {compactNumber(post.likesCount)} {post.likesCount === 1 ? "like" : "likes"}
+          </span>
+          {notice && <span className="ml-auto text-xs text-slate-400 truncate">{notice}</span>}
         </div>
 
-        {/* Likes Count */}
-        <p className="text-sm font-semibold text-white">
-          {likesCount.toLocaleString()} {likesCount === 1 ? "like" : "likes"}
-        </p>
+        {post.caption && (
+          <p className="text-sm text-slate-200 leading-relaxed whitespace-pre-line break-words">
+            <Link to={`/u/${post.authorUsername}`} className="font-semibold text-white mr-2">
+              {post.authorUsername}
+            </Link>
+            {post.caption}
+          </p>
+        )}
 
-        {/* Caption */}
-        <p className="text-sm text-slate-200 leading-relaxed">
-          <span className="font-semibold text-white mr-2">{post.authorUsername}</span>
-          {post.caption}
-        </p>
-
-        {/* Comment Link */}
-        {post.commentsCount > 0 && (
-          <button className="text-xs text-slate-400 hover:text-slate-200 block">
-            View all {post.commentsCount} comments
-          </button>
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {tags.map((tag) => (
+              <Link
+                key={tag}
+                to={`/explore?q=${encodeURIComponent(tag)}`}
+                className="flex items-center gap-1 text-[11px] font-medium bg-surface/80 text-pink-300 px-2.5 py-1 rounded-full border border-pink-500/20 hover:border-pink-500/50"
+              >
+                {post.aiTags.includes(tag) && <Sparkles className="w-3 h-3 text-pink-400" />}#{tag}
+              </Link>
+            ))}
+          </div>
         )}
       </div>
     </article>

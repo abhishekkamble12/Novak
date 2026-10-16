@@ -37,6 +37,9 @@ jobs:
       - name: Typecheck API
         run: npm run typecheck --workspace=@novak/api
 
+      - name: Test API
+        run: npm test --workspace=@novak/api
+
       - name: Build & Typecheck Web
         run: npm run build --workspace=@novak/web
 
@@ -58,10 +61,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r apps/ai-service/requirements.txt
-          pip install ruff pytest pytest-asyncio
+          pip install ruff
 
       - name: Lint with ruff
         run: ruff check apps/ai-service
+
+      - name: Import check
+        working-directory: apps/ai-service
+        run: python -c "from app.main import app; print(app.title)"
 
   docker-build-verify:
     name: Docker Build Validation

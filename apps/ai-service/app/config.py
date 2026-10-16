@@ -9,9 +9,8 @@ class Settings(BaseSettings):
     AI_ENV: str = "development"
     INTERNAL_API_SECRET: str = "internal-ai-service-shared-secret-key"
 
-    REDIS_URL: str = "redis://localhost:6379"
-
-    # Vector DB
+    # Vector DB. QDRANT_URL (e.g. a Qdrant Cloud cluster URL) takes precedence over host/port.
+    QDRANT_URL: str | None = None
     QDRANT_HOST: str = "localhost"
     QDRANT_PORT: int = 6333
     QDRANT_GRPC_PORT: int = 6334
@@ -21,8 +20,12 @@ class Settings(BaseSettings):
     # CLIP Model Configuration
     CLIP_MODEL_NAME: str = "ViT-B-32"
     CLIP_PRETRAINED: str = "openai"
-    TEXT_EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
     DEVICE: str = "cpu"
     VECTOR_DIM: int = 512
+
+    # Image download limits for analysis
+    IMAGE_FETCH_TIMEOUT_S: float = 15.0
+    IMAGE_MAX_BYTES: int = 15 * 1024 * 1024
+
 
 settings = Settings()
