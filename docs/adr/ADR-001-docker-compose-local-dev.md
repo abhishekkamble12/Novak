@@ -9,7 +9,7 @@ Accepted
 ## Context
 Novak comprises multiple heterogeneous services:
 1. Node.js Express API service
-2. Python FastAPI AI service with machine learning dependencies (CLIP, Qdrant client)
+2. Python FastAPI AI service with machine learning dependencies (FastEmbed, Qdrant client)
 3. React Vite frontend
 4. Data stores: MongoDB 7, Redis 7 (cache & message queue), and Qdrant (vector search engine)
 5. Nginx reverse proxy

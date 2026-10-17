@@ -1,13 +1,11 @@
 import hmac
 import time
-from urllib.parse import urljoin
 
-import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException
 from starlette.concurrency import run_in_threadpool
 
 from app.config import settings
-from app.models.clip_loader import clip_service
+from app.models.embedder import embedder
 from app.models.moderation import moderation_service
 from app.models.tagger import caption_hashtags, tagger
 from app.schemas.contracts import (
@@ -31,33 +29,6 @@ def verify_internal_secret(x_internal_secret: str | None = Header(None, alias="X
 router = APIRouter(prefix="/api/v1", tags=["AI Inference"], dependencies=[Depends(verify_internal_secret)])
 
 
-async def fetch_image(url: str) -> bytes:
-    """Downloads a user-supplied image. Only https is followed (including redirects), so the
-    service can't be pointed at plain-http internal hosts. Raises 422 on any failure: the
-    caller treats 4xx as permanent and flags the post instead of retrying."""
-    async with httpx.AsyncClient(timeout=settings.IMAGE_FETCH_TIMEOUT_S, follow_redirects=False) as client:
-        for _ in range(4):
-            if not url.startswith("https://"):
-                raise HTTPException(status_code=422, detail="Image URL must use https")
-            try:
-                async with client.stream("GET", url, headers={"User-Agent": "NovakBot/1.0"}) as res:
-                    if res.is_redirect and "location" in res.headers:
-                        url = urljoin(url, res.headers["location"])
-                        continue
-                    if res.status_code != 200:
-                        raise HTTPException(status_code=422, detail=f"Image fetch returned {res.status_code}")
-                    chunks, size = [], 0
-                    async for chunk in res.aiter_bytes():
-                        size += len(chunk)
-                        if size > settings.IMAGE_MAX_BYTES:
-                            raise HTTPException(status_code=422, detail="Image is too large")
-                        chunks.append(chunk)
-                    return b"".join(chunks)
-            except httpx.HTTPError as e:
-                raise HTTPException(status_code=422, detail=f"Image could not be fetched: {e}") from e
-    raise HTTPException(status_code=422, detail="Too many redirects")
-
-
 @router.post("/moderate", response_model=ModerationResult)
 async def moderate_content(payload: ModerationRequest):
     text_result = await run_in_threadpool(moderation_service.evaluate_text, payload.text)
@@ -72,16 +43,11 @@ async def analyze_post_pipeline(payload: PostAnalyzePayload):
     tags = caption_hashtags(payload.caption)
     indexed = False
 
-    if clip_service.is_loaded and mod.status != "rejected":
-        image_bytes = await fetch_image(payload.media_url)
-        try:
-            image_vec = await run_in_threadpool(clip_service.get_image_embedding, image_bytes)
-        except Exception as e:
-            # PIL couldn't decode it: not an image, won't succeed on retry
-            raise HTTPException(status_code=422, detail=f"Unsupported image: {e}") from e
-
-        vec = await run_in_threadpool(clip_service.get_post_embedding, image_vec, payload.caption)
-        ai_tags = await run_in_threadpool(tagger.image_tags, image_vec)
+    # Posts are indexed by their text; an image with no caption has nothing to embed
+    if embedder.is_loaded and mod.status != "rejected" and payload.caption.strip():
+        # bge-small reads up to 512 tokens; this just bounds the work for very long captions
+        [vec] = await run_in_threadpool(embedder.embed_documents, [payload.caption[:1000]])
+        ai_tags = await run_in_threadpool(tagger.text_tags, vec)
         tags = list(dict.fromkeys(tags + ai_tags))[:10]
 
         indexed = await run_in_threadpool(
@@ -112,12 +78,12 @@ async def delete_post_vector(post_id: str):
 
 @router.post("/search", response_model=SemanticSearchResponse)
 async def semantic_search(query: SemanticSearchQuery):
-    if not clip_service.is_loaded:
+    if not embedder.is_loaded:
         # The API falls back to keyword search on any non-2xx
         raise HTTPException(status_code=503, detail="Semantic search unavailable: model not loaded")
 
     start = time.time()
-    q_vec = await run_in_threadpool(clip_service.get_text_embedding, query.query)
+    q_vec = await run_in_threadpool(embedder.embed_query, query.query)
     try:
         hits = await run_in_threadpool(
             qdrant_store.search_posts, q_vec, query.limit, query.offset, query.filter_tag

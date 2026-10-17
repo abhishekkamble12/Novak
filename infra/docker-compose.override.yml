@@ -8,7 +8,8 @@ services:
       - ../apps/api/src:/app/apps/api/src
       - ../packages/contracts/src:/app/packages/contracts/src
       - /app/apps/api/node_modules
-    command: npm run dev --workspace=@novak/api
+    # The API imports @novak/contracts from its dist/, so compile it first (restart after contract edits)
+    command: sh -c "npm run build --workspace=@novak/contracts && npm run dev --workspace=@novak/api"
 
   ai-service:
     build:

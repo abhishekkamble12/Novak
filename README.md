@@ -1,6 +1,6 @@
 # Novak — AI-Native Multimodal Social Platform
 
-Novak is an Instagram-scale, AI-native social platform designed with a high-performance distributed architecture. It integrates asynchronous computer vision pipelines (OpenCLIP), semantic visual search, intelligent feed ranking, automated toxicity & NSFW moderation guardrails, and real-time social interactions.
+Novak is an Instagram-scale, AI-native social platform designed with a high-performance distributed architecture. It integrates an asynchronous AI pipeline (FastEmbed sentence embeddings), semantic search over a Dockerized Qdrant vector DB, intelligent feed ranking, automated toxicity & NSFW moderation guardrails, and real-time social interactions.
 
 ---
 
@@ -28,12 +28,12 @@ Novak is an Instagram-scale, AI-native social platform designed with a high-perf
             ▼                  ▼                  ▼
 ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────────────┐
 │    MongoDB 7     │ │  Redis 7 Cache   │ │   FastAPI AI Service     │
-│ (Primary Store)  │ │   & Job Queue    │ │ (OpenCLIP + Moderation)  │
+│ (Primary Store)  │ │   & Job Queue    │ │ (FastEmbed + Moderation) │
 │  Port: 27017     │ │    Port: 6379    │ │       Port: 8000         │
 └──────────────────┘ └─────────┬────────┘ └────────────┬─────────────┘
                                │ BullMQ Job            │
                                └───────────────────────┘
-                                                       │ Vectors (512-dim)
+                                                       │ Vectors (384-dim)
                                                        ▼
                                           ┌──────────────────────────┐
                                           │  Qdrant Vector Engine    │
@@ -45,9 +45,9 @@ Novak is an Instagram-scale, AI-native social platform designed with a high-perf
 
 ## ✨ Features & Capabilities
 
-- **Multimodal Semantic Search**: Natural language query search powered by 512-dimensional OpenCLIP embeddings and Qdrant ANN cosine distance indexing.
-- **Asynchronous AI Pipeline**: Non-blocking post creation (<50ms p95 latency) decoupling user uploads from heavy computer vision inference via Redis and BullMQ.
-- **Automated Content Guardrails**: Text toxicity, hate speech, spam, and visual safety moderation pre-filtering before vector indexing.
+- **Semantic Search**: Natural language search powered by 384-dimensional `bge-small-en-v1.5` embeddings (FastEmbed, ONNX on CPU, no PyTorch) and Qdrant ANN cosine indexing with keyword payload filters.
+- **Asynchronous AI Pipeline**: Non-blocking post creation (<50ms p95 latency) decoupling user uploads from AI inference via Redis and BullMQ.
+- **Automated Content Guardrails**: Text toxicity, hate speech, spam, and spam moderation pre-filtering before vector indexing.
 - **Modern Dark Aesthetic**: Sleek glassmorphism, responsive navigation (desktop sidebar & mobile bottom bar), and double-tap micro-animations.
 - **Shared Type Safety**: Monorepo contracts (`@novak/contracts`) enforcing Zod request/response validation across both TypeScript and Python services.
 - **Production-Ready Infra**: Multi-stage Dockerfiles, Docker Compose profiles, health checks, Redis connection pooling with fail-fast degradation, and automated CI.
@@ -73,7 +73,7 @@ novak/
 │   │   └── server.ts            # HTTP bootstrap & Socket.IO Redis adapter
 │   └── ai-service/              # Python 3.11 + FastAPI Machine Learning Microservice
 │       ├── app/api/             # Inference routes (/moderate, /embed, /analyze-post, /search)
-│       ├── app/models/          # OpenCLIP model loader & safety moderation engine
+│       ├── app/models/          # FastEmbed embedder, zero-shot tagger & moderation engine
 │       ├── app/vectorstore/     # Qdrant client wrapper (query_points, upsert)
 │       └── app/schemas/         # Pydantic models with camelCase alias compatibility
 ├── packages/
@@ -144,7 +144,11 @@ python -m venv .venv
 source .venv/bin/activate
 
 pip install -r requirements.txt
+# The ~67 MB embedding model downloads automatically on first start (cached in .cache/)
 cd ../..
+
+# Check the Dockerized Qdrant end to end (with the venv active)
+npm run qdrant:smoke
 ```
 
 ### 5. Start Local Development Servers
@@ -166,7 +170,7 @@ npm run dev:ai
 | **Web Frontend** | `http://localhost:5173` | `80` (prod) / `5173` (dev) | React 18 SPA |
 | **Node API** | `http://localhost:3000` | `3000` | Express core REST & WebSockets |
 | **API Health** | `http://localhost:3000/api/health` | `3000` | Checks MongoDB & Redis connectivity |
-| **FastAPI Service** | `http://localhost:8000` | `8000` | CLIP inference & Qdrant bridge |
+| **FastAPI Service** | `http://localhost:8000` | `8000` | Embeddings, tagging & Qdrant bridge |
 | **AI Health** | `http://localhost:8000/health` | `8000` | Checks Qdrant & model status |
 | **Qdrant Dashboard** | `http://localhost:6333/dashboard` | `6333` | Vector collection explorer |
 | **MongoDB** | `mongodb://localhost:27017/novak` | `27017` | Document database |
@@ -201,6 +205,8 @@ npm run infra:down
 | `npm run build` | Builds contracts, API, and Web SPA distribution bundles |
 | `npm run typecheck` | Runs TypeScript type checking across contracts, API, and Web |
 | `npm run infra:up` | Starts persistent data stores (`mongo`, `redis`, `qdrant`) |
+| `npm run qdrant:up` | Starts only the Qdrant container and waits until it's healthy |
+| `npm run qdrant:smoke` | Upserts, searches, filters and deletes vectors in a throwaway Qdrant collection (needs the Python venv) |
 | `npm run infra:all` | Starts all services via Docker Compose with dev overrides |
 | `npm run infra:down` | Stops and cleans up Docker containers |
 | `npm run infra:logs` | Streams live logs from all running Docker services |
@@ -211,8 +217,8 @@ npm run infra:down
 
 1. **Post Ingestion**: User publishes media with caption → API records post as `moderationStatus: 'pending'` and enqueues `PostAnalyzeJob` to BullMQ.
 2. **Safety Moderation**: Content is evaluated by regex word-boundary guardrails and toxicity models (`apps/ai-service/app/models/moderation.py`).
-3. **Multimodal Embeddings**: OpenCLIP extracts a 512-dimensional normalized feature vector from the text and image.
-4. **Vector Indexing**: The vector is upserted into Qdrant (`novak_posts_v1` collection) alongside author metadata and discoverable tags.
+3. **Embeddings & Tags**: FastEmbed (`BAAI/bge-small-en-v1.5`) turns the caption into a 384-dimensional normalized vector; a zero-shot tagger compares it against topic labels to add AI tags.
+4. **Vector Indexing**: The vector is upserted into Qdrant (`novak_posts_v2` collection) alongside author metadata and discoverable tags.
 5. **Real-Time Notification**: Status is updated in MongoDB and pushed to the client via Socket.IO (`post:processed`).
 6. **Semantic Querying**: Queries in Explore (`POST /api/v1/search`) are vectorized into the same latent space and queried against Qdrant using cosine similarity (`query_points`).
 

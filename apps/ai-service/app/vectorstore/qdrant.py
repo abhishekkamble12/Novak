@@ -1,3 +1,4 @@
+import time
 import uuid
 from typing import Any
 
@@ -6,6 +7,9 @@ from qdrant_client.http import models as qmodels
 
 from app.config import settings
 
+# Seconds between reconnect attempts while Qdrant is down
+RECONNECT_INTERVAL_S = 10.0
+
 
 def point_id_for(post_id: str) -> str:
     # Qdrant ids must be UUIDs or integers; derive a stable UUID from the Mongo id
@@ -13,38 +17,54 @@ def point_id_for(post_id: str) -> str:
 
 
 class QdrantVectorStore:
+    """Qdrant running in Docker (infra/docker-compose.yml). If it isn't reachable at startup,
+    calls retry the connection lazily, so starting the AI service before the container is fine."""
+
     def __init__(self):
         self.client: QdrantClient | None = None
+        self._last_attempt = 0.0
 
-    def connect(self):
+    @property
+    def target(self) -> str:
+        return f"{settings.QDRANT_HOST}:{settings.QDRANT_PORT}"
+
+    def connect(self) -> bool:
+        self._last_attempt = time.monotonic()
         try:
-            if settings.QDRANT_URL:
-                client = QdrantClient(
-                    url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY or None, timeout=10.0
-                )
-                target = settings.QDRANT_URL
-            else:
-                client = QdrantClient(
-                    host=settings.QDRANT_HOST,
-                    port=settings.QDRANT_PORT,
-                    api_key=settings.QDRANT_API_KEY or None,  # "" from .env would force HTTPS
-                    https=False,
-                    timeout=10.0,
-                )
-                target = f"{settings.QDRANT_HOST}:{settings.QDRANT_PORT}"
+            client = QdrantClient(
+                host=settings.QDRANT_HOST, port=settings.QDRANT_PORT, https=False, timeout=10.0
+            )
+            self._ensure_collection(client)
             self.client = client
-            self.ensure_collection()
-            print(f"[Qdrant] Connected to {target}")
+            print(f"[Qdrant] Connected to {self.target}")
+            return True
         except Exception as e:
-            print(f"[Qdrant] Connection not established ({e}). Vector indexing disabled.")
+            print(f"[Qdrant] Not reachable at {self.target} ({e}). Will retry on demand.")
             self.client = None
+            return False
 
-    def ensure_collection(self):
-        if not self.client:
-            return
+    def _get_client(self) -> QdrantClient | None:
+        if self.client is None and time.monotonic() - self._last_attempt >= RECONNECT_INTERVAL_S:
+            self.connect()
+        return self.client
+
+    def is_healthy(self) -> bool:
+        client = self._get_client()
+        if client is None:
+            return False
+        try:
+            client.get_collections()
+            return True
+        except Exception:
+            # Container went away; drop the client so the next call reconnects
+            self.client = None
+            return False
+
+    @staticmethod
+    def _ensure_collection(client: QdrantClient):
         name = settings.QDRANT_COLLECTION_POSTS
-        if not self.client.collection_exists(name):
-            self.client.create_collection(
+        if not client.collection_exists(name):
+            client.create_collection(
                 collection_name=name,
                 vectors_config=qmodels.VectorParams(
                     size=settings.VECTOR_DIM, distance=qmodels.Distance.COSINE
@@ -52,17 +72,18 @@ class QdrantVectorStore:
             )
             print(f"[Qdrant] Created collection {name}")
         # Keyword index so tag filters stay fast as the collection grows
-        self.client.create_payload_index(
+        client.create_payload_index(
             collection_name=name,
             field_name="tags",
             field_schema=qmodels.PayloadSchemaType.KEYWORD,
         )
 
     def upsert_post(self, post_id: str, vector: list[float], payload: dict[str, Any]) -> bool:
-        if not self.client:
+        client = self._get_client()
+        if not client:
             return False
         try:
-            self.client.upsert(
+            client.upsert(
                 collection_name=settings.QDRANT_COLLECTION_POSTS,
                 points=[
                     qmodels.PointStruct(
@@ -76,9 +97,10 @@ class QdrantVectorStore:
             return False
 
     def delete_post(self, post_id: str) -> bool:
-        if not self.client:
+        client = self._get_client()
+        if not client:
             return False
-        self.client.delete(
+        client.delete(
             collection_name=settings.QDRANT_COLLECTION_POSTS,
             points_selector=qmodels.PointIdsList(points=[point_id_for(post_id)]),
         )
@@ -88,8 +110,9 @@ class QdrantVectorStore:
         self, vector: list[float], limit: int = 20, offset: int = 0, filter_tag: str | None = None
     ) -> list[dict[str, Any]]:
         """Raises when Qdrant is unreachable so the caller can report the outage."""
-        if not self.client:
-            raise RuntimeError("Qdrant is not connected")
+        client = self._get_client()
+        if not client:
+            raise RuntimeError(f"Qdrant is not reachable at {self.target}")
 
         qfilter = None
         if filter_tag:
@@ -97,7 +120,7 @@ class QdrantVectorStore:
                 must=[qmodels.FieldCondition(key="tags", match=qmodels.MatchValue(value=filter_tag))]
             )
 
-        response = self.client.query_points(
+        response = client.query_points(
             collection_name=settings.QDRANT_COLLECTION_POSTS,
             query=vector,
             limit=limit,

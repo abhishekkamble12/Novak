@@ -6,14 +6,14 @@ from starlette.concurrency import run_in_threadpool
 from app.api.health import router as health_router
 from app.api.inference import router as inference_router
 from app.config import settings
-from app.models.clip_loader import clip_service
+from app.models.embedder import embedder
 from app.vectorstore.qdrant import qdrant_store
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("[AI-Service] Starting up Novak AI Service...")
-    await run_in_threadpool(clip_service.load_model)
+    await run_in_threadpool(embedder.load_model)
     await run_in_threadpool(qdrant_store.connect)
     yield
     print("[AI-Service] Shutting down Novak AI Service...")

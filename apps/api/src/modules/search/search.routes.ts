@@ -31,7 +31,7 @@ router.get(
       }));
       response = { results, mode: "semantic", latencyMs: Date.now() - started };
     } catch (err) {
-      // Expected when the AI service runs without CLIP, so keep it to one line
+      // Expected when the AI service or its embedding model is down, so keep it to one line
       logger.warn({ reason: (err as Error).message }, "Semantic search unavailable, using keyword search");
       const results = await keywordSearch(q, limit, tag, viewerId);
       response = { results, mode: "keyword", latencyMs: Date.now() - started };

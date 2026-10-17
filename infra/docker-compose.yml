@@ -30,16 +30,15 @@ services:
       retries: 5
 
   qdrant:
-    # Fresh setups can use v1.19.1 (matches qdrant-client). Existing v1.12 volumes can't skip
-    # minor versions; reset with `docker volume rm infra_qdrant_data` before upgrading.
-    image: qdrant/qdrant:v1.12.1
+    # Keep in step with qdrant-client in apps/ai-service/requirements.txt
+    image: qdrant/qdrant:v1.19.1
     container_name: novak-qdrant
     restart: unless-stopped
     ports:
       - "127.0.0.1:6333:6333"
       - "127.0.0.1:6334:6334"
     volumes:
-      - qdrant_data:/qdrant/storage
+      - qdrant_storage:/qdrant/storage
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/6333 && printf \"GET /readyz HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q \"200 OK\" <&3'"]
       interval: 10s
@@ -90,7 +89,6 @@ services:
       # .env's PORT belongs to the API; pin the AI service's own port and bind address
       - PORT=8000
       - AI_HOST=0.0.0.0
-      - QDRANT_URL=
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
     depends_on:
@@ -129,4 +127,5 @@ services:
 volumes:
   mongo_data:
   redis_data:
-  qdrant_data:
+  # New name for v1.19: the old v1.12 "qdrant_data" volume can't be opened by it directly
+  qdrant_storage:

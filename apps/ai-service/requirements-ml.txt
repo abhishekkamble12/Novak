@@ -1,5 +1,0 @@
-# Optional: real CLIP embeddings, AI tags and semantic search (~1 GB of RAM at runtime).
-# Installed by the Dockerfile when built with WITH_CLIP=true. CPU-only torch wheels.
---extra-index-url https://download.pytorch.org/whl/cpu
-torch>=2.2.0
-open-clip-torch>=2.24.0

@@ -8,6 +8,7 @@ build/
 __pycache__/
 *.pyc
 .venv/
+.cache/
 venv/
 .pytest_cache/
 coverage/

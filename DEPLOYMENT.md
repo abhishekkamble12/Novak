@@ -21,9 +21,7 @@ Create a project, then add these services in order.
 
 1. **MongoDB**: *New → Database → MongoDB*.
 2. **Redis**: *New → Database → Redis*.
-3. **Qdrant** (vector search; optional but recommended). Pick one:
-   - *New → Docker Image →* `qdrant/qdrant:v1.19.1`. Add a volume at `/qdrant/storage` and the variable `QDRANT__SERVICE__HOST=::` (so it listens on Railway's IPv6 private network). Name the service `qdrant`.
-   - Or a free cluster on [Qdrant Cloud](https://cloud.qdrant.io). Keep its URL and API key for step 1b.
+3. **Qdrant** (vector search, the same Docker image as local dev): *New → Docker Image →* `qdrant/qdrant:v1.19.1`. Add a volume at `/qdrant/storage` and the variable `QDRANT__SERVICE__HOST=::` (so it listens on Railway's IPv6 private network). Name the service `qdrant`.
 
 ### 1b. `ai-service`
 
@@ -41,15 +39,9 @@ Create a project, then add these services in order.
 AI_ENV=production
 PORT=8000
 INTERNAL_API_SECRET=<random, 32+ chars>   # openssl rand -base64 48
-# Railway Qdrant service:
-QDRANT_URL=http://${{qdrant.RAILWAY_PRIVATE_DOMAIN}}:6333
-# ...or Qdrant Cloud instead:
-# QDRANT_URL=https://xxxx.cloud.qdrant.io:6333
-# QDRANT_API_KEY=<key>
-
-# Real AI (CLIP embeddings, semantic search, AI image tags). Needs ~1.5 GB RAM.
-# Leave unset for a lightweight service: moderation still runs, search uses keywords.
-WITH_CLIP=true
+# The Qdrant Docker service from step 1a, over the private network
+QDRANT_HOST=${{qdrant.RAILWAY_PRIVATE_DOMAIN}}
+QDRANT_PORT=6333
 ```
 
 ### 1c. `api`
@@ -123,8 +115,7 @@ Without this, posts take a public `https://` image URL. To let users upload file
 | Login works but you're signed out after a reload | The refresh cookie isn't reaching the API. Leave `VITE_API_URL` unset and check the `vercel.json` rewrite domain. |
 | `CORS policy violation` | Add the exact Vercel origin (no trailing slash) to `CORS_ORIGIN`. |
 | Posts stay "AI analyzing" | The API can't reach ai-service. Check `AI_SERVICE_URL`, that `PORT=8000` is set on ai-service, and its logs. Jobs retry with backoff for about 2.5 minutes. |
-| Every post ends up "Under review" (CLIP on) | The image host blocks downloads, or the URL isn't a direct image link. Use Cloudinary uploads. |
-| Search says "Keyword match" | Expected without `WITH_CLIP=true` or Qdrant. Check `GET /health` on ai-service for the component status. |
+| Search says "Keyword match" | Semantic search needs Qdrant and the embedding model. Check `GET /health` on ai-service for the component status. |
 | Realtime status updates don't arrive | Set `VITE_SOCKET_URL` on Vercel and redeploy. The page origin must be in `CORS_ORIGIN`. |
 
 ## Local development
@@ -133,6 +124,7 @@ Without this, posts take a public `https://` image URL. To let users upload file
 cp .env.example .env
 npm install
 npm run infra:up        # Mongo, Redis, Qdrant in Docker
+npm run qdrant:smoke    # optional: checks Qdrant end to end (needs the ai-service Python env)
 npm run dev             # contracts + API (:3000) + web (:5173)
 npm run dev:ai          # optional, needs a Python env with apps/ai-service/requirements.txt
 ```

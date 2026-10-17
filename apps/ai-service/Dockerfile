@@ -5,25 +5,18 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    HF_HOME=/app/.cache/huggingface
+    EMBED_CACHE_DIR=/app/.cache/fastembed
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY apps/ai-service/requirements.txt apps/ai-service/requirements-ml.txt ./
+COPY apps/ai-service/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# WITH_CLIP=true installs torch + OpenCLIP and bakes the model weights into the image, enabling
-# semantic search and AI tags. On Railway, set WITH_CLIP as a service variable: Railway passes
-# variables named by ARG into the build.
-ARG WITH_CLIP=false
-ARG CLIP_MODEL_NAME=ViT-B-32
-ARG CLIP_PRETRAINED=openai
-RUN if [ "$WITH_CLIP" = "true" ]; then \
-      pip install --no-cache-dir -r requirements-ml.txt && \
-      python -c "import open_clip; open_clip.create_model_and_transforms('$CLIP_MODEL_NAME', pretrained='$CLIP_PRETRAINED')"; \
-    fi
+# Bake the ~67 MB ONNX embedding model into the image so containers start without downloading it
+ARG EMBED_MODEL_NAME=BAAI/bge-small-en-v1.5
+RUN python -c "from fastembed import TextEmbedding; TextEmbedding('$EMBED_MODEL_NAME', cache_dir='$EMBED_CACHE_DIR')"
 
 # Dev stage with hot-reloading
 FROM base AS dev

@@ -1,7 +1,8 @@
 from fastapi import APIRouter
+from starlette.concurrency import run_in_threadpool
 
 from app.config import settings
-from app.models.clip_loader import clip_service
+from app.models.embedder import embedder
 from app.vectorstore.qdrant import qdrant_store
 
 router = APIRouter(tags=["Health"])
@@ -11,14 +12,13 @@ router = APIRouter(tags=["Health"])
 async def health_check():
     # Always 200 while the process is up: moderation works without Qdrant or the model,
     # and the API degrades to keyword search. The components show what's actually live.
-    qdrant_ok = qdrant_store.client is not None
+    qdrant_ok = await run_in_threadpool(qdrant_store.is_healthy)
     return {
-        "status": "healthy" if qdrant_ok and clip_service.is_loaded else "degraded",
+        "status": "healthy" if qdrant_ok and embedder.is_loaded else "degraded",
         "service": "novak-ai-service",
         "env": settings.AI_ENV,
         "components": {
             "qdrant": "healthy" if qdrant_ok else "unavailable",
-            "clip_model": "loaded" if clip_service.is_loaded else "not_installed",
-            "device": settings.DEVICE,
+            "embedding_model": settings.EMBED_MODEL_NAME if embedder.is_loaded else "not_loaded",
         },
     }
