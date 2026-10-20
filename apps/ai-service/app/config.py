@@ -20,5 +20,9 @@ class Settings(BaseSettings):
     EMBED_CACHE_DIR: str = ".cache/fastembed"
     VECTOR_DIM: int = 384
 
+    # Cosine-similarity floor for semantic search hits. Chosen from eval/run_eval.py on the
+    # labelled set in eval/dataset.json; see docs/SEARCH_EVAL.md before changing it.
+    SEARCH_MIN_SCORE: float = 0.62
+
 
 settings = Settings()

@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -9,20 +10,23 @@ from app.config import settings
 from app.models.embedder import embedder
 from app.vectorstore.qdrant import qdrant_store
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+log = logging.getLogger("novak")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("[AI-Service] Starting up Novak AI Service...")
+    log.info("Starting Novak AI service")
     await run_in_threadpool(embedder.load_model)
     await run_in_threadpool(qdrant_store.connect)
     yield
-    print("[AI-Service] Shutting down Novak AI Service...")
+    log.info("Shutting down Novak AI service")
 
 
 def create_app() -> FastAPI:
     app = FastAPI(
         title="Novak AI Service",
-        description="Async AI Pipeline for Embeddings, Semantic Search, and Safety Moderation",
+        description="Caption embeddings, semantic text search over Qdrant, and rule-based caption screening",
         version="1.0.0",
         lifespan=lifespan,
     )

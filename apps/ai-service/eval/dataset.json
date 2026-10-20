@@ -1,0 +1,700 @@
+{
+ "description": "Hand-labelled relevance set for Novak caption search. Written by the project author, so it reflects one person's judgement and vocabulary. Binary relevance. 'lexical' queries share words with relevant captions; 'paraphrase' queries mostly do not; 'no_answer' queries have no relevant post. Split: odd query numbers = dev (used to pick the score threshold), even = test (reported).",
+ "posts": [
+  {
+   "id": "p01",
+   "caption": "Took Biscuit to the dog park, he made three new friends",
+   "tags": [
+    "dog"
+   ]
+  },
+  {
+   "id": "p02",
+   "caption": "My golden retriever refuses to leave the lake",
+   "tags": []
+  },
+  {
+   "id": "p03",
+   "caption": "Puppy's first bath went about as well as you'd expect",
+   "tags": [
+    "puppy"
+   ]
+  },
+  {
+   "id": "p04",
+   "caption": "This cat has claimed my laptop keyboard as her bed",
+   "tags": []
+  },
+  {
+   "id": "p05",
+   "caption": "Kitten zoomies at 3am, send help",
+   "tags": []
+  },
+  {
+   "id": "p06",
+   "caption": "Our tabby watching birds from the window all afternoon",
+   "tags": []
+  },
+  {
+   "id": "p07",
+   "caption": "Golden hour on the beach, waves rolling in",
+   "tags": [
+    "sunset"
+   ]
+  },
+  {
+   "id": "p08",
+   "caption": "First time surfing, swallowed half the Pacific",
+   "tags": []
+  },
+  {
+   "id": "p09",
+   "caption": "Collecting seashells along the shore at low tide",
+   "tags": []
+  },
+  {
+   "id": "p10",
+   "caption": "Summit reached after six hours of switchbacks",
+   "tags": [
+    "hiking"
+   ]
+  },
+  {
+   "id": "p11",
+   "caption": "Alpine lake so clear you can see the bottom",
+   "tags": []
+  },
+  {
+   "id": "p12",
+   "caption": "Foggy trail through the pines this morning",
+   "tags": []
+  },
+  {
+   "id": "p13",
+   "caption": "Oat milk flat white and a quiet corner",
+   "tags": [
+    "coffee"
+   ]
+  },
+  {
+   "id": "p14",
+   "caption": "Hand-pouring a V60, the bloom is everything",
+   "tags": []
+  },
+  {
+   "id": "p15",
+   "caption": "Third espresso of the day, no regrets",
+   "tags": []
+  },
+  {
+   "id": "p16",
+   "caption": "Homemade ramen, broth simmered for twelve hours",
+   "tags": []
+  },
+  {
+   "id": "p17",
+   "caption": "Sunday roast with all the trimmings",
+   "tags": []
+  },
+  {
+   "id": "p18",
+   "caption": "Street tacos from the truck downtown, best in town",
+   "tags": [
+    "food"
+   ]
+  },
+  {
+   "id": "p19",
+   "caption": "Neon signs reflecting in puddles on a Tokyo side street",
+   "tags": []
+  },
+  {
+   "id": "p20",
+   "caption": "City skyline lit up after midnight",
+   "tags": []
+  },
+  {
+   "id": "p21",
+   "caption": "Late night train ride, empty carriage and buzzing lights",
+   "tags": []
+  },
+  {
+   "id": "p22",
+   "caption": "Listening to the storm hammer the windows",
+   "tags": []
+  },
+  {
+   "id": "p23",
+   "caption": "Forgot my umbrella, soaked to the bone",
+   "tags": []
+  },
+  {
+   "id": "p24",
+   "caption": "Drizzly afternoon walk, everything smells like wet earth",
+   "tags": []
+  },
+  {
+   "id": "p25",
+   "caption": "New deadlift PR at the gym today",
+   "tags": [
+    "fitness"
+   ]
+  },
+  {
+   "id": "p26",
+   "caption": "5am run before the city wakes up",
+   "tags": []
+  },
+  {
+   "id": "p27",
+   "caption": "Yoga on the balcony to start the weekend",
+   "tags": []
+  },
+  {
+   "id": "p28",
+   "caption": "Finished the last chapter at 2am, what an ending",
+   "tags": []
+  },
+  {
+   "id": "p29",
+   "caption": "Rainy day, blanket, and a stack of library books",
+   "tags": []
+  },
+  {
+   "id": "p30",
+   "caption": "Secondhand bookstore haul: six novels for ten dollars",
+   "tags": []
+  },
+  {
+   "id": "p31",
+   "caption": "Front row at the festival, my ears are still ringing",
+   "tags": []
+  },
+  {
+   "id": "p32",
+   "caption": "Learning to play guitar, my fingertips hate me",
+   "tags": []
+  },
+  {
+   "id": "p33",
+   "caption": "Vinyl Sunday, spinning old jazz records",
+   "tags": []
+  },
+  {
+   "id": "p34",
+   "caption": "Caught the Milky Way over the desert last night",
+   "tags": []
+  },
+  {
+   "id": "p35",
+   "caption": "Telescope pointed at Saturn, you can actually see the rings",
+   "tags": []
+  },
+  {
+   "id": "p36",
+   "caption": "Watched the rocket launch from the beach",
+   "tags": []
+  },
+  {
+   "id": "p37",
+   "caption": "My monstera finally unfurled a new leaf",
+   "tags": [
+    "plants"
+   ]
+  },
+  {
+   "id": "p38",
+   "caption": "First tomatoes of the season from the backyard garden",
+   "tags": []
+  },
+  {
+   "id": "p39",
+   "caption": "Repotting succulents on the porch",
+   "tags": []
+  },
+  {
+   "id": "p40",
+   "caption": "Fresh powder, first ski run of the season",
+   "tags": []
+  },
+  {
+   "id": "p41",
+   "caption": "Built a snowman with the kids this morning",
+   "tags": []
+  },
+  {
+   "id": "p42",
+   "caption": "Cozy cabin, crackling fireplace, snow falling outside",
+   "tags": []
+  },
+  {
+   "id": "p43",
+   "caption": "Six hour layover, exploring every corner of the terminal",
+   "tags": []
+  },
+  {
+   "id": "p44",
+   "caption": "Passport stamped, next stop Lisbon",
+   "tags": [
+    "travel"
+   ]
+  },
+  {
+   "id": "p45",
+   "caption": "Window seat views over the Alps",
+   "tags": []
+  },
+  {
+   "id": "p46",
+   "caption": "Watercolor study of the harbor",
+   "tags": []
+  },
+  {
+   "id": "p47",
+   "caption": "Spent the afternoon sketching strangers in the park",
+   "tags": []
+  },
+  {
+   "id": "p48",
+   "caption": "Finally finished this oil painting after three months",
+   "tags": [
+    "art"
+   ]
+  },
+  {
+   "id": "p49",
+   "caption": "Debugging Python at midnight, coffee number four",
+   "tags": []
+  },
+  {
+   "id": "p50",
+   "caption": "New mechanical keyboard for the home office setup",
+   "tags": []
+  },
+  {
+   "id": "p51",
+   "caption": "Shipped my first open source pull request today",
+   "tags": []
+  },
+  {
+   "id": "p52",
+   "caption": "My sister said yes! Engagement dinner tonight",
+   "tags": []
+  },
+  {
+   "id": "p53",
+   "caption": "Dancing all night at my best friend's wedding",
+   "tags": []
+  },
+  {
+   "id": "p54",
+   "caption": "Bridesmaids in sage green, the flowers were stunning",
+   "tags": []
+  },
+  {
+   "id": "p55",
+   "caption": "Sixty miles on the bike, legs are toast",
+   "tags": [
+    "cycling"
+   ]
+  },
+  {
+   "id": "p56",
+   "caption": "Fixed my flat tire on the side of the road like a pro",
+   "tags": []
+  },
+  {
+   "id": "p57",
+   "caption": "Commuting by bike through the park every day now",
+   "tags": []
+  },
+  {
+   "id": "p58",
+   "caption": "Sourdough starter is alive and bubbling",
+   "tags": []
+  },
+  {
+   "id": "p59",
+   "caption": "Chocolate lava cake for dessert tonight",
+   "tags": []
+  },
+  {
+   "id": "p60",
+   "caption": "Baked cinnamon rolls, the whole house smells amazing",
+   "tags": []
+  },
+  {
+   "id": "p61",
+   "caption": "Spotted a ball python at the reptile expo",
+   "tags": []
+  },
+  {
+   "id": "p62",
+   "caption": "Our team crushed the trivia night at the pub",
+   "tags": []
+  }
+ ],
+ "queries": [
+  {
+   "id": "q01",
+   "type": "lexical",
+   "split": "dev",
+   "query": "coffee",
+   "relevant": [
+    "p13",
+    "p14",
+    "p15",
+    "p49"
+   ]
+  },
+  {
+   "id": "q02",
+   "type": "lexical",
+   "split": "test",
+   "query": "dog",
+   "relevant": [
+    "p01",
+    "p02",
+    "p03"
+   ]
+  },
+  {
+   "id": "q03",
+   "type": "lexical",
+   "split": "dev",
+   "query": "snow",
+   "relevant": [
+    "p40",
+    "p41",
+    "p42"
+   ]
+  },
+  {
+   "id": "q04",
+   "type": "lexical",
+   "split": "test",
+   "query": "gym workout",
+   "relevant": [
+    "p25",
+    "p26",
+    "p27"
+   ]
+  },
+  {
+   "id": "q05",
+   "type": "lexical",
+   "split": "dev",
+   "query": "bike ride",
+   "relevant": [
+    "p55",
+    "p56",
+    "p57"
+   ]
+  },
+  {
+   "id": "q06",
+   "type": "lexical",
+   "split": "test",
+   "query": "wedding",
+   "relevant": [
+    "p52",
+    "p53",
+    "p54"
+   ]
+  },
+  {
+   "id": "q07",
+   "type": "lexical",
+   "split": "dev",
+   "query": "garden plants",
+   "relevant": [
+    "p37",
+    "p38",
+    "p39"
+   ]
+  },
+  {
+   "id": "q08",
+   "type": "lexical",
+   "split": "test",
+   "query": "painting",
+   "relevant": [
+    "p46",
+    "p47",
+    "p48"
+   ]
+  },
+  {
+   "id": "q09",
+   "type": "lexical",
+   "split": "dev",
+   "query": "books",
+   "relevant": [
+    "p28",
+    "p29",
+    "p30"
+   ]
+  },
+  {
+   "id": "q10",
+   "type": "lexical",
+   "split": "test",
+   "query": "rain",
+   "relevant": [
+    "p22",
+    "p23",
+    "p24",
+    "p29"
+   ]
+  },
+  {
+   "id": "q11",
+   "type": "paraphrase",
+   "split": "dev",
+   "query": "pets doing funny things",
+   "relevant": [
+    "p01",
+    "p02",
+    "p03",
+    "p04",
+    "p05",
+    "p06"
+   ]
+  },
+  {
+   "id": "q12",
+   "type": "paraphrase",
+   "split": "test",
+   "query": "kitty",
+   "relevant": [
+    "p04",
+    "p05",
+    "p06"
+   ]
+  },
+  {
+   "id": "q13",
+   "type": "paraphrase",
+   "split": "dev",
+   "query": "ocean waves at dusk",
+   "relevant": [
+    "p07",
+    "p08"
+   ]
+  },
+  {
+   "id": "q14",
+   "type": "paraphrase",
+   "split": "test",
+   "query": "climbing a mountain",
+   "relevant": [
+    "p10",
+    "p11",
+    "p12"
+   ]
+  },
+  {
+   "id": "q15",
+   "type": "paraphrase",
+   "split": "dev",
+   "query": "caffeine fix",
+   "relevant": [
+    "p13",
+    "p14",
+    "p15",
+    "p49"
+   ]
+  },
+  {
+   "id": "q16",
+   "type": "paraphrase",
+   "split": "test",
+   "query": "noodle soup",
+   "relevant": [
+    "p16"
+   ]
+  },
+  {
+   "id": "q17",
+   "type": "paraphrase",
+   "split": "dev",
+   "query": "cyberpunk city lights",
+   "relevant": [
+    "p19",
+    "p20",
+    "p21"
+   ]
+  },
+  {
+   "id": "q18",
+   "type": "paraphrase",
+   "split": "test",
+   "query": "thunderstorm",
+   "relevant": [
+    "p22"
+   ]
+  },
+  {
+   "id": "q19",
+   "type": "paraphrase",
+   "split": "dev",
+   "query": "weightlifting",
+   "relevant": [
+    "p25"
+   ]
+  },
+  {
+   "id": "q20",
+   "type": "paraphrase",
+   "split": "test",
+   "query": "reading a novel",
+   "relevant": [
+    "p28",
+    "p29",
+    "p30"
+   ]
+  },
+  {
+   "id": "q21",
+   "type": "paraphrase",
+   "split": "dev",
+   "query": "live music",
+   "relevant": [
+    "p31"
+   ]
+  },
+  {
+   "id": "q22",
+   "type": "paraphrase",
+   "split": "test",
+   "query": "stargazing",
+   "relevant": [
+    "p34",
+    "p35"
+   ]
+  },
+  {
+   "id": "q23",
+   "type": "paraphrase",
+   "split": "dev",
+   "query": "houseplants",
+   "relevant": [
+    "p37",
+    "p39"
+   ]
+  },
+  {
+   "id": "q24",
+   "type": "paraphrase",
+   "split": "test",
+   "query": "skiing in the mountains",
+   "relevant": [
+    "p40"
+   ]
+  },
+  {
+   "id": "q25",
+   "type": "paraphrase",
+   "split": "dev",
+   "query": "going on vacation abroad",
+   "relevant": [
+    "p43",
+    "p44",
+    "p45"
+   ]
+  },
+  {
+   "id": "q26",
+   "type": "paraphrase",
+   "split": "test",
+   "query": "drawing people",
+   "relevant": [
+    "p47"
+   ]
+  },
+  {
+   "id": "q27",
+   "type": "paraphrase",
+   "split": "dev",
+   "query": "programming setup",
+   "relevant": [
+    "p49",
+    "p50",
+    "p51"
+   ]
+  },
+  {
+   "id": "q28",
+   "type": "paraphrase",
+   "split": "test",
+   "query": "getting married",
+   "relevant": [
+    "p52",
+    "p53",
+    "p54"
+   ]
+  },
+  {
+   "id": "q29",
+   "type": "paraphrase",
+   "split": "dev",
+   "query": "freshly baked bread",
+   "relevant": [
+    "p58",
+    "p60"
+   ]
+  },
+  {
+   "id": "q30",
+   "type": "paraphrase",
+   "split": "test",
+   "query": "sweet treats",
+   "relevant": [
+    "p59",
+    "p60"
+   ]
+  },
+  {
+   "id": "n01",
+   "type": "no_answer",
+   "split": "dev",
+   "query": "quantum chromodynamics lecture",
+   "relevant": []
+  },
+  {
+   "id": "n02",
+   "type": "no_answer",
+   "split": "test",
+   "query": "filing my tax return",
+   "relevant": []
+  },
+  {
+   "id": "n03",
+   "type": "no_answer",
+   "split": "dev",
+   "query": "car engine repair",
+   "relevant": []
+  },
+  {
+   "id": "n04",
+   "type": "no_answer",
+   "split": "test",
+   "query": "stock market crash",
+   "relevant": []
+  },
+  {
+   "id": "n05",
+   "type": "no_answer",
+   "split": "dev",
+   "query": "dentist appointment",
+   "relevant": []
+  },
+  {
+   "id": "n06",
+   "type": "no_answer",
+   "split": "test",
+   "query": "basketball championship game",
+   "relevant": []
+  }
+ ]
+}

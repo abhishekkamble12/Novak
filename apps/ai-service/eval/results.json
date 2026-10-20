@@ -1,0 +1,1707 @@
+{
+ "dataset": {
+  "posts": 62,
+  "queries": 36,
+  "test_queries": 18
+ },
+ "model": "BAAI/bge-small-en-v1.5 via FastEmbed (ONNX, CPU)",
+ "timing_ms": {
+  "embed_document_avg": 5.38,
+  "embed_query_p50": 8.31,
+  "embed_query_p95": 17.05
+ },
+ "threshold": {
+  "chosen": 0.62,
+  "dev_f1": 0.7005932339265672,
+  "test_f1": 0.6518518518518519,
+  "sweep": [
+   {
+    "threshold": 0.4,
+    "dev_f1": 0.3425972175972176,
+    "test_f1": 0.3143153143153143
+   },
+   {
+    "threshold": 0.41,
+    "dev_f1": 0.3425972175972176,
+    "test_f1": 0.3143153143153143
+   },
+   {
+    "threshold": 0.42,
+    "dev_f1": 0.3425972175972176,
+    "test_f1": 0.3143153143153143
+   },
+   {
+    "threshold": 0.43,
+    "dev_f1": 0.3425972175972176,
+    "test_f1": 0.3143153143153143
+   },
+   {
+    "threshold": 0.44,
+    "dev_f1": 0.3425972175972176,
+    "test_f1": 0.3143153143153143
+   },
+   {
+    "threshold": 0.45,
+    "dev_f1": 0.3425972175972176,
+    "test_f1": 0.3143153143153143
+   },
+   {
+    "threshold": 0.46,
+    "dev_f1": 0.3425972175972176,
+    "test_f1": 0.3143153143153143
+   },
+   {
+    "threshold": 0.47,
+    "dev_f1": 0.3425972175972176,
+    "test_f1": 0.3143153143153143
+   },
+   {
+    "threshold": 0.48,
+    "dev_f1": 0.3425972175972176,
+    "test_f1": 0.3143153143153143
+   },
+   {
+    "threshold": 0.49,
+    "dev_f1": 0.3425972175972176,
+    "test_f1": 0.3143153143153143
+   },
+   {
+    "threshold": 0.5,
+    "dev_f1": 0.3425972175972176,
+    "test_f1": 0.3143153143153143
+   },
+   {
+    "threshold": 0.51,
+    "dev_f1": 0.34473396973396975,
+    "test_f1": 0.31897731897731896
+   },
+   {
+    "threshold": 0.52,
+    "dev_f1": 0.3570882820882821,
+    "test_f1": 0.3263890430557097
+   },
+   {
+    "threshold": 0.53,
+    "dev_f1": 0.35506808006808005,
+    "test_f1": 0.3475737225737226
+   },
+   {
+    "threshold": 0.54,
+    "dev_f1": 0.3841729258395925,
+    "test_f1": 0.4048497798497798
+   },
+   {
+    "threshold": 0.55,
+    "dev_f1": 0.4430686597353264,
+    "test_f1": 0.5075156325156325
+   },
+   {
+    "threshold": 0.56,
+    "dev_f1": 0.46841337674671,
+    "test_f1": 0.5956108706108706
+   },
+   {
+    "threshold": 0.57,
+    "dev_f1": 0.6257733007733007,
+    "test_f1": 0.6181738015071347
+   },
+   {
+    "threshold": 0.58,
+    "dev_f1": 0.6599681183014516,
+    "test_f1": 0.5963403880070547
+   },
+   {
+    "threshold": 0.59,
+    "dev_f1": 0.6592592592592593,
+    "test_f1": 0.6378306878306879
+   },
+   {
+    "threshold": 0.6,
+    "dev_f1": 0.6615079365079366,
+    "test_f1": 0.623015873015873
+   },
+   {
+    "threshold": 0.61,
+    "dev_f1": 0.693270001603335,
+    "test_f1": 0.6166666666666667
+   },
+   {
+    "threshold": 0.62,
+    "dev_f1": 0.7005932339265672,
+    "test_f1": 0.6518518518518519
+   },
+   {
+    "threshold": 0.63,
+    "dev_f1": 0.6441959275292608,
+    "test_f1": 0.7187830687830687
+   },
+   {
+    "threshold": 0.64,
+    "dev_f1": 0.6427248677248678,
+    "test_f1": 0.7116402116402116
+   },
+   {
+    "threshold": 0.65,
+    "dev_f1": 0.6088624338624338,
+    "test_f1": 0.741005291005291
+   },
+   {
+    "threshold": 0.66,
+    "dev_f1": 0.5623015873015873,
+    "test_f1": 0.7185185185185186
+   },
+   {
+    "threshold": 0.67,
+    "dev_f1": 0.5555555555555556,
+    "test_f1": 0.662962962962963
+   },
+   {
+    "threshold": 0.68,
+    "dev_f1": 0.5444444444444445,
+    "test_f1": 0.6111111111111112
+   },
+   {
+    "threshold": 0.69,
+    "dev_f1": 0.5166666666666667,
+    "test_f1": 0.46111111111111114
+   },
+   {
+    "threshold": 0.7,
+    "dev_f1": 0.4666666666666667,
+    "test_f1": 0.43333333333333335
+   },
+   {
+    "threshold": 0.71,
+    "dev_f1": 0.44814814814814813,
+    "test_f1": 0.4425925925925926
+   },
+   {
+    "threshold": 0.72,
+    "dev_f1": 0.3648148148148148,
+    "test_f1": 0.3333333333333333
+   },
+   {
+    "threshold": 0.73,
+    "dev_f1": 0.28148148148148144,
+    "test_f1": 0.2777777777777778
+   },
+   {
+    "threshold": 0.74,
+    "dev_f1": 0.24444444444444446,
+    "test_f1": 0.2222222222222222
+   },
+   {
+    "threshold": 0.75,
+    "dev_f1": 0.21666666666666667,
+    "test_f1": 0.2222222222222222
+   },
+   {
+    "threshold": 0.76,
+    "dev_f1": 0.21666666666666667,
+    "test_f1": 0.16666666666666666
+   },
+   {
+    "threshold": 0.77,
+    "dev_f1": 0.21666666666666667,
+    "test_f1": 0.16666666666666666
+   },
+   {
+    "threshold": 0.78,
+    "dev_f1": 0.16666666666666666,
+    "test_f1": 0.16666666666666666
+   },
+   {
+    "threshold": 0.79,
+    "dev_f1": 0.16666666666666666,
+    "test_f1": 0.16666666666666666
+   },
+   {
+    "threshold": 0.8,
+    "dev_f1": 0.16666666666666666,
+    "test_f1": 0.16666666666666666
+   },
+   {
+    "threshold": 0.81,
+    "dev_f1": 0.16666666666666666,
+    "test_f1": 0.16666666666666666
+   },
+   {
+    "threshold": 0.82,
+    "dev_f1": 0.16666666666666666,
+    "test_f1": 0.16666666666666666
+   },
+   {
+    "threshold": 0.83,
+    "dev_f1": 0.16666666666666666,
+    "test_f1": 0.16666666666666666
+   },
+   {
+    "threshold": 0.84,
+    "dev_f1": 0.16666666666666666,
+    "test_f1": 0.16666666666666666
+   },
+   {
+    "threshold": 0.85,
+    "dev_f1": 0.16666666666666666,
+    "test_f1": 0.16666666666666666
+   }
+  ]
+ },
+ "mongo_baseline": "ok",
+ "systems": {
+  "semantic (no threshold)": {
+   "all_queries": {
+    "lexical": {
+     "queries": 10,
+     "recall@5": 0.85,
+     "mrr@10": 1.0,
+     "ndcg@10": 0.9319950631243696,
+     "zero_result_rate": 0.0
+    },
+    "paraphrase": {
+     "queries": 20,
+     "recall@5": 0.9041666666666666,
+     "mrr@10": 0.9416666666666667,
+     "ndcg@10": 0.9138765712534314,
+     "zero_result_rate": 0.0
+    },
+    "all": {
+     "queries": 30,
+     "recall@5": 0.8861111111111111,
+     "mrr@10": 0.9611111111111111,
+     "ndcg@10": 0.9199160685437441,
+     "zero_result_rate": 0.0
+    }
+   },
+   "test_split": {
+    "lexical": {
+     "queries": 5,
+     "recall@5": 0.8833333333333332,
+     "mrr@10": 1.0,
+     "ndcg@10": 0.9523694256082071,
+     "zero_result_rate": 0.0
+    },
+    "paraphrase": {
+     "queries": 10,
+     "recall@5": 0.9166666666666666,
+     "mrr@10": 1.0,
+     "ndcg@10": 0.964273088839408,
+     "zero_result_rate": 0.0
+    },
+    "all": {
+     "queries": 15,
+     "recall@5": 0.9055555555555554,
+     "mrr@10": 1.0,
+     "ndcg@10": 0.9603052010956745,
+     "zero_result_rate": 0.0
+    }
+   },
+   "no_answer_queries_returning_results": 1.0,
+   "no_answer_test_returning_results": 1.0,
+   "test_set_f1": 0.3143153143153143
+  },
+  "semantic (min score 0.62)": {
+   "all_queries": {
+    "lexical": {
+     "queries": 10,
+     "recall@5": 0.6833333333333333,
+     "mrr@10": 1.0,
+     "ndcg@10": 0.7665031749263163,
+     "zero_result_rate": 0.0
+    },
+    "paraphrase": {
+     "queries": 20,
+     "recall@5": 0.7208333333333333,
+     "mrr@10": 0.9,
+     "ndcg@10": 0.7584608523147122,
+     "zero_result_rate": 0.05
+    },
+    "all": {
+     "queries": 30,
+     "recall@5": 0.7083333333333334,
+     "mrr@10": 0.9333333333333333,
+     "ndcg@10": 0.7611416265185802,
+     "zero_result_rate": 0.03333333333333333
+    }
+   },
+   "test_split": {
+    "lexical": {
+     "queries": 5,
+     "recall@5": 0.55,
+     "mrr@10": 1.0,
+     "ndcg@10": 0.6826289761074962,
+     "zero_result_rate": 0.0
+    },
+    "paraphrase": {
+     "queries": 10,
+     "recall@5": 0.8166666666666668,
+     "mrr@10": 1.0,
+     "ndcg@10": 0.8560049622291432,
+     "zero_result_rate": 0.0
+    },
+    "all": {
+     "queries": 15,
+     "recall@5": 0.7277777777777777,
+     "mrr@10": 1.0,
+     "ndcg@10": 0.7982129668552609,
+     "zero_result_rate": 0.0
+    }
+   },
+   "no_answer_queries_returning_results": 0.16666666666666666,
+   "no_answer_test_returning_results": 0.3333333333333333,
+   "test_set_f1": 0.6518518518518519
+  },
+  "keyword: bm25": {
+   "all_queries": {
+    "lexical": {
+     "queries": 10,
+     "recall@5": 0.38333333333333336,
+     "mrr@10": 0.85,
+     "ndcg@10": 0.47484367058352356,
+     "zero_result_rate": 0.1
+    },
+    "paraphrase": {
+     "queries": 20,
+     "recall@5": 0.16666666666666669,
+     "mrr@10": 0.3,
+     "ndcg@10": 0.19651062372825256,
+     "zero_result_rate": 0.65
+    },
+    "all": {
+     "queries": 30,
+     "recall@5": 0.23888888888888887,
+     "mrr@10": 0.48333333333333334,
+     "ndcg@10": 0.2892883060133429,
+     "zero_result_rate": 0.4666666666666667
+    }
+   },
+   "test_split": {
+    "lexical": {
+     "queries": 5,
+     "recall@5": 0.26666666666666666,
+     "mrr@10": 0.8,
+     "ndcg@10": 0.37542298081820513,
+     "zero_result_rate": 0.2
+    },
+    "paraphrase": {
+     "queries": 10,
+     "recall@5": 0.13333333333333333,
+     "mrr@10": 0.2,
+     "ndcg@10": 0.14692787260227563,
+     "zero_result_rate": 0.8
+    },
+    "all": {
+     "queries": 15,
+     "recall@5": 0.17777777777777776,
+     "mrr@10": 0.4,
+     "ndcg@10": 0.22309290867425216,
+     "zero_result_rate": 0.6
+    }
+   },
+   "no_answer_queries_returning_results": 0.0,
+   "no_answer_test_returning_results": 0.0,
+   "test_set_f1": 0.3611111111111111
+  },
+  "keyword: mongo $text (production fallback)": {
+   "all_queries": {
+    "lexical": {
+     "queries": 10,
+     "recall@5": 0.8416666666666666,
+     "mrr@10": 1.0,
+     "ndcg@10": 0.8770429915774397,
+     "zero_result_rate": 0.0
+    },
+    "paraphrase": {
+     "queries": 20,
+     "recall@5": 0.3416666666666667,
+     "mrr@10": 0.3875,
+     "ndcg@10": 0.3026918538453284,
+     "zero_result_rate": 0.45
+    },
+    "all": {
+     "queries": 30,
+     "recall@5": 0.5083333333333333,
+     "mrr@10": 0.5916666666666667,
+     "ndcg@10": 0.4941422330893654,
+     "zero_result_rate": 0.3
+    }
+   },
+   "test_split": {
+    "lexical": {
+     "queries": 5,
+     "recall@5": 0.6833333333333333,
+     "mrr@10": 1.0,
+     "ndcg@10": 0.7540859831548792,
+     "zero_result_rate": 0.0
+    },
+    "paraphrase": {
+     "queries": 10,
+     "recall@5": 0.3,
+     "mrr@10": 0.325,
+     "ndcg@10": 0.2665315921084771,
+     "zero_result_rate": 0.6
+    },
+    "all": {
+     "queries": 15,
+     "recall@5": 0.42777777777777776,
+     "mrr@10": 0.55,
+     "ndcg@10": 0.4290497224572778,
+     "zero_result_rate": 0.4
+    }
+   },
+   "no_answer_queries_returning_results": 0.16666666666666666,
+   "no_answer_test_returning_results": 0.3333333333333333,
+   "test_set_f1": 0.44947089947089947
+  },
+  "hybrid: semantic>=0.62 then mongo $text": {
+   "all_queries": {
+    "lexical": {
+     "queries": 10,
+     "recall@5": 0.875,
+     "mrr@10": 1.0,
+     "ndcg@10": 0.9050690730502348,
+     "zero_result_rate": 0.0
+    },
+    "paraphrase": {
+     "queries": 20,
+     "recall@5": 0.7874999999999999,
+     "mrr@10": 0.925,
+     "ndcg@10": 0.8106012724830564,
+     "zero_result_rate": 0.05
+    },
+    "all": {
+     "queries": 30,
+     "recall@5": 0.8166666666666667,
+     "mrr@10": 0.95,
+     "ndcg@10": 0.8420905393387824,
+     "zero_result_rate": 0.03333333333333333
+    }
+   },
+   "test_split": {
+    "lexical": {
+     "queries": 5,
+     "recall@5": 0.7499999999999999,
+     "mrr@10": 1.0,
+     "ndcg@10": 0.8357011035052206,
+     "zero_result_rate": 0.0
+    },
+    "paraphrase": {
+     "queries": 10,
+     "recall@5": 0.8166666666666668,
+     "mrr@10": 1.0,
+     "ndcg@10": 0.8560049622291432,
+     "zero_result_rate": 0.0
+    },
+    "all": {
+     "queries": 15,
+     "recall@5": 0.7944444444444444,
+     "mrr@10": 1.0,
+     "ndcg@10": 0.849237009321169,
+     "zero_result_rate": 0.0
+    }
+   },
+   "no_answer_queries_returning_results": 0.3333333333333333,
+   "no_answer_test_returning_results": 0.6666666666666666,
+   "test_set_f1": 0.6259259259259259
+  }
+ },
+ "per_query": {
+  "q01": {
+   "query": "coffee",
+   "type": "lexical",
+   "relevant": [
+    "p13",
+    "p14",
+    "p15",
+    "p49"
+   ],
+   "semantic_top5": [
+    [
+     "p13",
+     0.776
+    ],
+    [
+     "p17",
+     0.666
+    ],
+    [
+     "p15",
+     0.664
+    ],
+    [
+     "p49",
+     0.663
+    ],
+    [
+     "p60",
+     0.594
+    ]
+   ],
+   "mongo_top5": [
+    "p13",
+    "p49",
+    "p14",
+    "p15",
+    "p17"
+   ]
+  },
+  "q02": {
+   "query": "dog",
+   "type": "lexical",
+   "relevant": [
+    "p01",
+    "p02",
+    "p03"
+   ],
+   "semantic_top5": [
+    [
+     "p02",
+     0.636
+    ],
+    [
+     "p03",
+     0.593
+    ],
+    [
+     "p01",
+     0.593
+    ],
+    [
+     "p04",
+     0.558
+    ],
+    [
+     "p06",
+     0.55
+    ]
+   ],
+   "mongo_top5": [
+    "p01",
+    "p02",
+    "p03"
+   ]
+  },
+  "q03": {
+   "query": "snow",
+   "type": "lexical",
+   "relevant": [
+    "p40",
+    "p41",
+    "p42"
+   ],
+   "semantic_top5": [
+    [
+     "p41",
+     0.703
+    ],
+    [
+     "p42",
+     0.69
+    ],
+    [
+     "p12",
+     0.643
+    ],
+    [
+     "p40",
+     0.63
+    ],
+    [
+     "p22",
+     0.628
+    ]
+   ],
+   "mongo_top5": [
+    "p42",
+    "p40",
+    "p41"
+   ]
+  },
+  "q04": {
+   "query": "gym workout",
+   "type": "lexical",
+   "relevant": [
+    "p25",
+    "p26",
+    "p27"
+   ],
+   "semantic_top5": [
+    [
+     "p25",
+     0.734
+    ],
+    [
+     "p57",
+     0.627
+    ],
+    [
+     "p27",
+     0.593
+    ],
+    [
+     "p16",
+     0.572
+    ],
+    [
+     "p41",
+     0.571
+    ]
+   ],
+   "mongo_top5": [
+    "p25"
+   ]
+  },
+  "q05": {
+   "query": "bike ride",
+   "type": "lexical",
+   "relevant": [
+    "p55",
+    "p56",
+    "p57"
+   ],
+   "semantic_top5": [
+    [
+     "p57",
+     0.777
+    ],
+    [
+     "p55",
+     0.693
+    ],
+    [
+     "p45",
+     0.61
+    ],
+    [
+     "p12",
+     0.598
+    ],
+    [
+     "p26",
+     0.598
+    ]
+   ],
+   "mongo_top5": [
+    "p55",
+    "p57",
+    "p56",
+    "p21"
+   ]
+  },
+  "q06": {
+   "query": "wedding",
+   "type": "lexical",
+   "relevant": [
+    "p52",
+    "p53",
+    "p54"
+   ],
+   "semantic_top5": [
+    [
+     "p53",
+     0.685
+    ],
+    [
+     "p52",
+     0.664
+    ],
+    [
+     "p54",
+     0.61
+    ],
+    [
+     "p59",
+     0.601
+    ],
+    [
+     "p17",
+     0.569
+    ]
+   ],
+   "mongo_top5": [
+    "p53",
+    "p52",
+    "p54"
+   ]
+  },
+  "q07": {
+   "query": "garden plants",
+   "type": "lexical",
+   "relevant": [
+    "p37",
+    "p38",
+    "p39"
+   ],
+   "semantic_top5": [
+    [
+     "p38",
+     0.744
+    ],
+    [
+     "p39",
+     0.698
+    ],
+    [
+     "p37",
+     0.629
+    ],
+    [
+     "p09",
+     0.587
+    ],
+    [
+     "p54",
+     0.555
+    ]
+   ],
+   "mongo_top5": [
+    "p37",
+    "p38",
+    "p39"
+   ]
+  },
+  "q08": {
+   "query": "painting",
+   "type": "lexical",
+   "relevant": [
+    "p46",
+    "p47",
+    "p48"
+   ],
+   "semantic_top5": [
+    [
+     "p46",
+     0.738
+    ],
+    [
+     "p48",
+     0.719
+    ],
+    [
+     "p09",
+     0.588
+    ],
+    [
+     "p45",
+     0.564
+    ],
+    [
+     "p47",
+     0.562
+    ]
+   ],
+   "mongo_top5": [
+    "p48"
+   ]
+  },
+  "q09": {
+   "query": "books",
+   "type": "lexical",
+   "relevant": [
+    "p28",
+    "p29",
+    "p30"
+   ],
+   "semantic_top5": [
+    [
+     "p29",
+     0.686
+    ],
+    [
+     "p30",
+     0.621
+    ],
+    [
+     "p45",
+     0.565
+    ],
+    [
+     "p46",
+     0.546
+    ],
+    [
+     "p09",
+     0.539
+    ]
+   ],
+   "mongo_top5": [
+    "p29",
+    "p28",
+    "p30"
+   ]
+  },
+  "q10": {
+   "query": "rain",
+   "type": "lexical",
+   "relevant": [
+    "p22",
+    "p23",
+    "p24",
+    "p29"
+   ],
+   "semantic_top5": [
+    [
+     "p23",
+     0.68
+    ],
+    [
+     "p22",
+     0.679
+    ],
+    [
+     "p12",
+     0.659
+    ],
+    [
+     "p29",
+     0.638
+    ],
+    [
+     "p46",
+     0.63
+    ]
+   ],
+   "mongo_top5": [
+    "p22",
+    "p23",
+    "p24"
+   ]
+  },
+  "q11": {
+   "query": "pets doing funny things",
+   "type": "paraphrase",
+   "relevant": [
+    "p01",
+    "p02",
+    "p03",
+    "p04",
+    "p05",
+    "p06"
+   ],
+   "semantic_top5": [
+    [
+     "p03",
+     0.657
+    ],
+    [
+     "p01",
+     0.649
+    ],
+    [
+     "p05",
+     0.645
+    ],
+    [
+     "p06",
+     0.64
+    ],
+    [
+     "p61",
+     0.638
+    ]
+   ],
+   "mongo_top5": [
+    "p01",
+    "p03",
+    "p61"
+   ]
+  },
+  "q12": {
+   "query": "kitty",
+   "type": "paraphrase",
+   "relevant": [
+    "p04",
+    "p05",
+    "p06"
+   ],
+   "semantic_top5": [
+    [
+     "p05",
+     0.698
+    ],
+    [
+     "p04",
+     0.684
+    ],
+    [
+     "p39",
+     0.552
+    ],
+    [
+     "p59",
+     0.542
+    ],
+    [
+     "p03",
+     0.538
+    ]
+   ],
+   "mongo_top5": []
+  },
+  "q13": {
+   "query": "ocean waves at dusk",
+   "type": "paraphrase",
+   "relevant": [
+    "p07",
+    "p08"
+   ],
+   "semantic_top5": [
+    [
+     "p07",
+     0.738
+    ],
+    [
+     "p09",
+     0.726
+    ],
+    [
+     "p46",
+     0.654
+    ],
+    [
+     "p36",
+     0.651
+    ],
+    [
+     "p22",
+     0.65
+    ]
+   ],
+   "mongo_top5": [
+    "p08",
+    "p09",
+    "p46",
+    "p07"
+   ]
+  },
+  "q14": {
+   "query": "climbing a mountain",
+   "type": "paraphrase",
+   "relevant": [
+    "p10",
+    "p11",
+    "p12"
+   ],
+   "semantic_top5": [
+    [
+     "p10",
+     0.683
+    ],
+    [
+     "p11",
+     0.664
+    ],
+    [
+     "p45",
+     0.644
+    ],
+    [
+     "p41",
+     0.64
+    ],
+    [
+     "p12",
+     0.624
+    ]
+   ],
+   "mongo_top5": [
+    "p10",
+    "p11",
+    "p45"
+   ]
+  },
+  "q15": {
+   "query": "caffeine fix",
+   "type": "paraphrase",
+   "relevant": [
+    "p13",
+    "p14",
+    "p15",
+    "p49"
+   ],
+   "semantic_top5": [
+    [
+     "p13",
+     0.679
+    ],
+    [
+     "p49",
+     0.653
+    ],
+    [
+     "p15",
+     0.638
+    ],
+    [
+     "p05",
+     0.596
+    ],
+    [
+     "p17",
+     0.592
+    ]
+   ],
+   "mongo_top5": [
+    "p56"
+   ]
+  },
+  "q16": {
+   "query": "noodle soup",
+   "type": "paraphrase",
+   "relevant": [
+    "p16"
+   ],
+   "semantic_top5": [
+    [
+     "p16",
+     0.728
+    ],
+    [
+     "p60",
+     0.616
+    ],
+    [
+     "p13",
+     0.596
+    ],
+    [
+     "p17",
+     0.586
+    ],
+    [
+     "p59",
+     0.56
+    ]
+   ],
+   "mongo_top5": []
+  },
+  "q17": {
+   "query": "cyberpunk city lights",
+   "type": "paraphrase",
+   "relevant": [
+    "p19",
+    "p20",
+    "p21"
+   ],
+   "semantic_top5": [
+    [
+     "p20",
+     0.711
+    ],
+    [
+     "p21",
+     0.617
+    ],
+    [
+     "p26",
+     0.604
+    ],
+    [
+     "p19",
+     0.589
+    ],
+    [
+     "p22",
+     0.583
+    ]
+   ],
+   "mongo_top5": [
+    "p26",
+    "p20",
+    "p21"
+   ]
+  },
+  "q18": {
+   "query": "thunderstorm",
+   "type": "paraphrase",
+   "relevant": [
+    "p22"
+   ],
+   "semantic_top5": [
+    [
+     "p22",
+     0.754
+    ],
+    [
+     "p20",
+     0.648
+    ],
+    [
+     "p23",
+     0.62
+    ],
+    [
+     "p26",
+     0.613
+    ],
+    [
+     "p21",
+     0.612
+    ]
+   ],
+   "mongo_top5": []
+  },
+  "q19": {
+   "query": "weightlifting",
+   "type": "paraphrase",
+   "relevant": [
+    "p25"
+   ],
+   "semantic_top5": [
+    [
+     "p25",
+     0.721
+    ],
+    [
+     "p40",
+     0.563
+    ],
+    [
+     "p10",
+     0.549
+    ],
+    [
+     "p17",
+     0.544
+    ],
+    [
+     "p45",
+     0.541
+    ]
+   ],
+   "mongo_top5": []
+  },
+  "q20": {
+   "query": "reading a novel",
+   "type": "paraphrase",
+   "relevant": [
+    "p28",
+    "p29",
+    "p30"
+   ],
+   "semantic_top5": [
+    [
+     "p30",
+     0.661
+    ],
+    [
+     "p28",
+     0.605
+    ],
+    [
+     "p22",
+     0.583
+    ],
+    [
+     "p29",
+     0.578
+    ],
+    [
+     "p45",
+     0.534
+    ]
+   ],
+   "mongo_top5": [
+    "p30"
+   ]
+  },
+  "q21": {
+   "query": "live music",
+   "type": "paraphrase",
+   "relevant": [
+    "p31"
+   ],
+   "semantic_top5": [
+    [
+     "p22",
+     0.66
+    ],
+    [
+     "p33",
+     0.608
+    ],
+    [
+     "p31",
+     0.605
+    ],
+    [
+     "p25",
+     0.574
+    ],
+    [
+     "p27",
+     0.568
+    ]
+   ],
+   "mongo_top5": [
+    "p22",
+    "p31",
+    "p32",
+    "p33"
+   ]
+  },
+  "q22": {
+   "query": "stargazing",
+   "type": "paraphrase",
+   "relevant": [
+    "p34",
+    "p35"
+   ],
+   "semantic_top5": [
+    [
+     "p34",
+     0.679
+    ],
+    [
+     "p45",
+     0.623
+    ],
+    [
+     "p36",
+     0.61
+    ],
+    [
+     "p20",
+     0.589
+    ],
+    [
+     "p09",
+     0.587
+    ]
+   ],
+   "mongo_top5": []
+  },
+  "q23": {
+   "query": "houseplants",
+   "type": "paraphrase",
+   "relevant": [
+    "p37",
+    "p39"
+   ],
+   "semantic_top5": [
+    [
+     "p39",
+     0.721
+    ],
+    [
+     "p38",
+     0.701
+    ],
+    [
+     "p37",
+     0.647
+    ],
+    [
+     "p60",
+     0.619
+    ],
+    [
+     "p09",
+     0.58
+    ]
+   ],
+   "mongo_top5": []
+  },
+  "q24": {
+   "query": "skiing in the mountains",
+   "type": "paraphrase",
+   "relevant": [
+    "p40"
+   ],
+   "semantic_top5": [
+    [
+     "p40",
+     0.713
+    ],
+    [
+     "p11",
+     0.713
+    ],
+    [
+     "p45",
+     0.707
+    ],
+    [
+     "p41",
+     0.66
+    ],
+    [
+     "p10",
+     0.641
+    ]
+   ],
+   "mongo_top5": [
+    "p10",
+    "p11",
+    "p45",
+    "p40"
+   ]
+  },
+  "q25": {
+   "query": "going on vacation abroad",
+   "type": "paraphrase",
+   "relevant": [
+    "p43",
+    "p44",
+    "p45"
+   ],
+   "semantic_top5": [
+    [
+     "p27",
+     0.605
+    ],
+    [
+     "p44",
+     0.595
+    ],
+    [
+     "p57",
+     0.577
+    ],
+    [
+     "p45",
+     0.57
+    ],
+    [
+     "p43",
+     0.564
+    ]
+   ],
+   "mongo_top5": []
+  },
+  "q26": {
+   "query": "drawing people",
+   "type": "paraphrase",
+   "relevant": [
+    "p47"
+   ],
+   "semantic_top5": [
+    [
+     "p47",
+     0.716
+    ],
+    [
+     "p46",
+     0.639
+    ],
+    [
+     "p48",
+     0.592
+    ],
+    [
+     "p41",
+     0.556
+    ],
+    [
+     "p09",
+     0.543
+    ]
+   ],
+   "mongo_top5": [
+    "p47",
+    "p48"
+   ]
+  },
+  "q27": {
+   "query": "programming setup",
+   "type": "paraphrase",
+   "relevant": [
+    "p49",
+    "p50",
+    "p51"
+   ],
+   "semantic_top5": [
+    [
+     "p50",
+     0.655
+    ],
+    [
+     "p51",
+     0.625
+    ],
+    [
+     "p49",
+     0.622
+    ],
+    [
+     "p27",
+     0.579
+    ],
+    [
+     "p25",
+     0.556
+    ]
+   ],
+   "mongo_top5": [
+    "p50"
+   ]
+  },
+  "q28": {
+   "query": "getting married",
+   "type": "paraphrase",
+   "relevant": [
+    "p52",
+    "p53",
+    "p54"
+   ],
+   "semantic_top5": [
+    [
+     "p52",
+     0.656
+    ],
+    [
+     "p53",
+     0.65
+    ],
+    [
+     "p54",
+     0.575
+    ],
+    [
+     "p51",
+     0.554
+    ],
+    [
+     "p59",
+     0.544
+    ]
+   ],
+   "mongo_top5": []
+  },
+  "q29": {
+   "query": "freshly baked bread",
+   "type": "paraphrase",
+   "relevant": [
+    "p58",
+    "p60"
+   ],
+   "semantic_top5": [
+    [
+     "p58",
+     0.72
+    ],
+    [
+     "p60",
+     0.714
+    ],
+    [
+     "p17",
+     0.679
+    ],
+    [
+     "p16",
+     0.666
+    ],
+    [
+     "p40",
+     0.663
+    ]
+   ],
+   "mongo_top5": [
+    "p40",
+    "p60"
+   ]
+  },
+  "q30": {
+   "query": "sweet treats",
+   "type": "paraphrase",
+   "relevant": [
+    "p59",
+    "p60"
+   ],
+   "semantic_top5": [
+    [
+     "p60",
+     0.688
+    ],
+    [
+     "p59",
+     0.682
+    ],
+    [
+     "p17",
+     0.641
+    ],
+    [
+     "p13",
+     0.636
+    ],
+    [
+     "p16",
+     0.605
+    ]
+   ],
+   "mongo_top5": []
+  },
+  "n01": {
+   "query": "quantum chromodynamics lecture",
+   "type": "no_answer",
+   "relevant": [],
+   "semantic_top5": [
+    [
+     "p46",
+     0.564
+    ],
+    [
+     "p45",
+     0.538
+    ],
+    [
+     "p49",
+     0.518
+    ],
+    [
+     "p09",
+     0.508
+    ],
+    [
+     "p25",
+     0.501
+    ]
+   ],
+   "mongo_top5": []
+  },
+  "n02": {
+   "query": "filing my tax return",
+   "type": "no_answer",
+   "relevant": [],
+   "semantic_top5": [
+    [
+     "p51",
+     0.623
+    ],
+    [
+     "p17",
+     0.547
+    ],
+    [
+     "p60",
+     0.537
+    ],
+    [
+     "p38",
+     0.531
+    ],
+    [
+     "p52",
+     0.523
+    ]
+   ],
+   "mongo_top5": []
+  },
+  "n03": {
+   "query": "car engine repair",
+   "type": "no_answer",
+   "relevant": [],
+   "semantic_top5": [
+    [
+     "p14",
+     0.605
+    ],
+    [
+     "p56",
+     0.566
+    ],
+    [
+     "p58",
+     0.53
+    ],
+    [
+     "p49",
+     0.512
+    ],
+    [
+     "p37",
+     0.509
+    ]
+   ],
+   "mongo_top5": []
+  },
+  "n04": {
+   "query": "stock market crash",
+   "type": "no_answer",
+   "relevant": [],
+   "semantic_top5": [
+    [
+     "p20",
+     0.549
+    ],
+    [
+     "p08",
+     0.54
+    ],
+    [
+     "p22",
+     0.54
+    ],
+    [
+     "p36",
+     0.538
+    ],
+    [
+     "p21",
+     0.532
+    ]
+   ],
+   "mongo_top5": []
+  },
+  "n05": {
+   "query": "dentist appointment",
+   "type": "no_answer",
+   "relevant": [],
+   "semantic_top5": [
+    [
+     "p25",
+     0.567
+    ],
+    [
+     "p27",
+     0.553
+    ],
+    [
+     "p17",
+     0.542
+    ],
+    [
+     "p51",
+     0.532
+    ],
+    [
+     "p13",
+     0.531
+    ]
+   ],
+   "mongo_top5": []
+  },
+  "n06": {
+   "query": "basketball championship game",
+   "type": "no_answer",
+   "relevant": [],
+   "semantic_top5": [
+    [
+     "p62",
+     0.556
+    ],
+    [
+     "p26",
+     0.537
+    ],
+    [
+     "p59",
+     0.535
+    ],
+    [
+     "p25",
+     0.525
+    ],
+    [
+     "p41",
+     0.508
+    ]
+   ],
+   "mongo_top5": [
+    "p62"
+   ]
+  }
+ }
+}

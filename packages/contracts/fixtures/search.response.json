@@ -1,0 +1,12 @@
+{
+  "results": [
+    {
+      "postId": "65f000000000000000000001",
+      "score": 0.7312
+    }
+  ],
+  "total": 1,
+  "query": "sunset",
+  "minScore": 0.62,
+  "latencyMs": 1.0
+}

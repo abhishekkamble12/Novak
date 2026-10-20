@@ -1,3 +1,4 @@
+import logging
 import time
 import uuid
 from typing import Any
@@ -6,6 +7,8 @@ from qdrant_client import QdrantClient
 from qdrant_client.http import models as qmodels
 
 from app.config import settings
+
+log = logging.getLogger("novak.qdrant")
 
 # Seconds between reconnect attempts while Qdrant is down
 RECONNECT_INTERVAL_S = 10.0
@@ -36,10 +39,10 @@ class QdrantVectorStore:
             )
             self._ensure_collection(client)
             self.client = client
-            print(f"[Qdrant] Connected to {self.target}")
+            log.info("Connected to Qdrant at %s", self.target)
             return True
         except Exception as e:
-            print(f"[Qdrant] Not reachable at {self.target} ({e}). Will retry on demand.")
+            log.warning("Qdrant not reachable at %s (%s); will retry on demand", self.target, e)
             self.client = None
             return False
 
@@ -70,7 +73,7 @@ class QdrantVectorStore:
                     size=settings.VECTOR_DIM, distance=qmodels.Distance.COSINE
                 ),
             )
-            print(f"[Qdrant] Created collection {name}")
+            log.info("Created Qdrant collection %s", name)
         # Keyword index so tag filters stay fast as the collection grows
         client.create_payload_index(
             collection_name=name,
@@ -78,12 +81,16 @@ class QdrantVectorStore:
             field_schema=qmodels.PayloadSchemaType.KEYWORD,
         )
 
-    def upsert_post(self, post_id: str, vector: list[float], payload: dict[str, Any]) -> bool:
+    def _require_client(self) -> QdrantClient:
         client = self._get_client()
-        if not client:
-            return False
+        if client is None:
+            raise RuntimeError(f"Qdrant is not reachable at {self.target}")
+        return client
+
+    def upsert_post(self, post_id: str, vector: list[float], payload: dict[str, Any]) -> None:
+        """Raises when Qdrant is unreachable, so the caller can retry rather than lose the vector."""
         try:
-            client.upsert(
+            self._require_client().upsert(
                 collection_name=settings.QDRANT_COLLECTION_POSTS,
                 points=[
                     qmodels.PointStruct(
@@ -91,28 +98,27 @@ class QdrantVectorStore:
                     )
                 ],
             )
-            return True
-        except Exception as e:
-            print(f"[Qdrant] Upsert error: {e}")
-            return False
+        except Exception:
+            # Container may have restarted; reconnect on the next call
+            self.client = None
+            raise
 
-    def delete_post(self, post_id: str) -> bool:
-        client = self._get_client()
-        if not client:
-            return False
-        client.delete(
+    def delete_post(self, post_id: str) -> None:
+        self._require_client().delete(
             collection_name=settings.QDRANT_COLLECTION_POSTS,
             points_selector=qmodels.PointIdsList(points=[point_id_for(post_id)]),
         )
         return True
 
     def search_posts(
-        self, vector: list[float], limit: int = 20, offset: int = 0, filter_tag: str | None = None
+        self,
+        vector: list[float],
+        limit: int = 20,
+        filter_tag: str | None = None,
+        min_score: float | None = None,
     ) -> list[dict[str, Any]]:
-        """Raises when Qdrant is unreachable so the caller can report the outage."""
-        client = self._get_client()
-        if not client:
-            raise RuntimeError(f"Qdrant is not reachable at {self.target}")
+        """Cosine top-k, dropping hits below min_score. Raises when Qdrant is unreachable."""
+        client = self._require_client()
 
         qfilter = None
         if filter_tag:
@@ -124,15 +130,14 @@ class QdrantVectorStore:
             collection_name=settings.QDRANT_COLLECTION_POSTS,
             query=vector,
             limit=limit,
-            offset=offset,
             query_filter=qfilter,
+            score_threshold=min_score,
             with_payload=True,
         )
         return [
             {
                 "post_id": (p.payload or {}).get("post_id", str(p.id)),
-                "score": p.score,
-                "payload": p.payload or {},
+                "score": float(p.score),
             }
             for p in response.points
         ]

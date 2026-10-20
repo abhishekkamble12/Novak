@@ -1,0 +1,11 @@
+{
+  "postId": "65f000000000000000000001",
+  "authorId": "65f000000000000000000002",
+  "authorUsername": "ada",
+  "mediaUrl": "https://example.com/a.jpg",
+  "caption": "Golden hour on the beach #sunset",
+  "tags": [
+    "travel"
+  ],
+  "timestamp": 1700000000000
+}

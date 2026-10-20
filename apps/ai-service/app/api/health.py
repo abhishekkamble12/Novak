@@ -10,8 +10,8 @@ router = APIRouter(tags=["Health"])
 
 @router.get("/health")
 async def health_check():
-    # Always 200 while the process is up: moderation works without Qdrant or the model,
-    # and the API degrades to keyword search. The components show what's actually live.
+    # Always 200 while the process is up (liveness). "degraded" means analysis jobs will be
+    # retried and search falls back to keyword mode until the components recover.
     qdrant_ok = await run_in_threadpool(qdrant_store.is_healthy)
     return {
         "status": "healthy" if qdrant_ok and embedder.is_loaded else "degraded",

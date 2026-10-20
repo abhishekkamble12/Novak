@@ -3,6 +3,14 @@ import { z } from "zod";
 export const ModerationStatusSchema = z.enum(["pending", "approved", "flagged", "rejected"]);
 export type ModerationStatus = z.infer<typeof ModerationStatusSchema>;
 
+/**
+ * Lifecycle of the background analysis job, separate from moderation:
+ * pending -> completed, or pending -> failed (retries exhausted / unrecoverable error).
+ * A failed post keeps moderationStatus "pending": a failure is never treated as approval.
+ */
+export const ProcessingStatusSchema = z.enum(["pending", "completed", "failed"]);
+export type ProcessingStatus = z.infer<typeof ProcessingStatusSchema>;
+
 const TagSchema = z
   .string()
   .trim()
@@ -38,6 +46,9 @@ export const PostDtoSchema = z.object({
   hasLiked: z.boolean(),
   moderationStatus: ModerationStatusSchema,
   moderationReason: z.string().optional(),
+  processingStatus: ProcessingStatusSchema,
+  /** True once the caption embedding is stored in Qdrant, i.e. the post is semantically searchable. */
+  searchIndexed: z.boolean(),
   aiTags: z.array(z.string()),
   score: z.number().optional(),
   createdAt: z.string(),
@@ -56,7 +67,11 @@ export type SearchQuery = z.infer<typeof SearchQuerySchema>;
 
 export const SearchResponseSchema = z.object({
   results: z.array(PostDtoSchema),
-  mode: z.enum(["semantic", "keyword"]),
+  /**
+   * hybrid: semantic hits (with score) then keyword matches. semantic / keyword: the other
+   * half failed (keyword = AI service unavailable).
+   */
+  mode: z.enum(["hybrid", "semantic", "keyword"]),
   latencyMs: z.number(),
 });
 
@@ -65,6 +80,20 @@ export type SearchResponse = z.infer<typeof SearchResponseSchema>;
 export const TrendingTagSchema = z.object({ tag: z.string(), count: z.number().int() });
 export type TrendingTag = z.infer<typeof TrendingTagSchema>;
 
+/**
+ * Result of the AI service's rule-based caption check. It is a keyword filter, not a model:
+ * there is no probability, so none is reported. It can only approve or flag for review.
+ */
+export const TextModerationResultSchema = z.object({
+  status: z.enum(["approved", "flagged"]),
+  method: z.literal("keyword_rules"),
+  labels: z.array(z.string()),
+  matchedTerms: z.array(z.string()),
+  reason: z.string().nullish(),
+});
+
+export type TextModerationResult = z.infer<typeof TextModerationResultSchema>;
+
 /** Job payload sent from the API worker to the AI service (camelCase on the wire). */
 export const PostAnalyzeJobSchema = z.object({
   postId: z.string(),
@@ -72,6 +101,8 @@ export const PostAnalyzeJobSchema = z.object({
   authorUsername: z.string(),
   mediaUrl: z.string().url(),
   caption: z.string(),
+  /** Author-supplied hashtags; embedded together with the caption. */
+  tags: z.array(z.string()).default([]),
   timestamp: z.number(),
 });
 
@@ -81,13 +112,7 @@ export const PostAnalyzedResultSchema = z.object({
   postId: z.string(),
   tags: z.array(z.string()),
   indexed: z.boolean(),
-  moderation: z.object({
-    isFlagged: z.boolean(),
-    status: z.enum(["approved", "flagged", "rejected"]),
-    confidence: z.number(),
-    labels: z.array(z.string()),
-    reason: z.string().nullish(),
-  }),
+  moderation: TextModerationResultSchema,
 });
 
 export type PostAnalyzedResult = z.infer<typeof PostAnalyzedResultSchema>;
@@ -96,5 +121,8 @@ export type PostAnalyzedResult = z.infer<typeof PostAnalyzedResultSchema>;
 export interface PostProcessedEvent {
   postId: string;
   moderationStatus: ModerationStatus;
+  moderationReason?: string;
+  processingStatus: ProcessingStatus;
+  searchIndexed: boolean;
   aiTags: string[];
 }

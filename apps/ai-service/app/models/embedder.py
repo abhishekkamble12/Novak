@@ -1,11 +1,16 @@
+import logging
+
 from app.config import settings
+
+log = logging.getLogger("novak.embedder")
 
 
 class TextEmbedder:
     """FastEmbed (ONNX, CPU-only) sentence embeddings. The default model, bge-small-en-v1.5,
     is a ~67 MB download on first load, cached in EMBED_CACHE_DIR. Posts are embedded from
-    their caption and tags, so a query like "beach sunset" matches "golden hour by the sea".
-    If the model can't load, moderation still works and the API falls back to keyword search."""
+    their caption and tags (text only; images are never looked at). If the model can't load,
+    search returns 503 and the API falls back to keyword search; analysis returns 503 and the
+    job is retried."""
 
     def __init__(self):
         self.model = None
@@ -19,9 +24,9 @@ class TextEmbedder:
             from fastembed import TextEmbedding
 
             self.model = TextEmbedding(settings.EMBED_MODEL_NAME, cache_dir=settings.EMBED_CACHE_DIR)
-            print(f"[Embedder] Loaded {settings.EMBED_MODEL_NAME}")
+            log.info("Loaded embedding model %s", settings.EMBED_MODEL_NAME)
         except Exception as e:
-            print(f"[Embedder] Model not available ({e}). Running without embeddings.")
+            log.error("Embedding model %s not available: %s", settings.EMBED_MODEL_NAME, e)
             self.model = None
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:

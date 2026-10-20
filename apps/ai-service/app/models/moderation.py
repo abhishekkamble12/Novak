@@ -1,67 +1,47 @@
+"""Rule-based caption screening.
+
+This is a keyword filter, not a classifier. It matches a short list of phrases with word
+boundaries and can only approve a caption or flag it for review; it never rejects outright,
+because exact-match rules have false positives that a person should look at. There is no
+probability behind a match, so none is reported.
+
+What it does not do: understand context, sarcasm, misspellings or other languages, or look
+at the image. Image moderation is not implemented anywhere in Novak.
+
+The list favours precision over recall. Bare words like "hate", "attack" or "kill" used to
+be on it and rejected captions such as "I hate Mondays" and "panic attack before my exam".
+"""
+
 import re
 
-from app.schemas.contracts import ModerationResult
+from app.schemas.contracts import TextModerationResult
 
-BLOCKED_TERMS = {
-    "hate_speech": ["hate", "violence", "kill", "terrorist", "attack", "slur"],
-    "explicit": ["porn", "nsfw", "nude", "explicit"],
+RULES: dict[str, list[str]] = {
+    "sexual_content": ["porn", "porno", "nsfw", "nudes", "xxx"],
+    "harassment": ["kill yourself", "kys"],
     "spam": ["free crypto", "guaranteed 1000x", "earn money fast", "click here to claim"],
 }
 
-class ModerationService:
-    def evaluate_text(self, text: str | None) -> ModerationResult:
-        if not text:
-            return ModerationResult(is_flagged=False, status="approved", confidence=1.0)
+_PATTERNS: dict[str, list[tuple[str, re.Pattern[str]]]] = {
+    label: [(term, re.compile(rf"\b{re.escape(term)}\b", re.IGNORECASE)) for term in terms]
+    for label, terms in RULES.items()
+}
 
-        lower_text = text.lower()
-        flagged_labels = []
-        scores = {}
 
-        for category, terms in BLOCKED_TERMS.items():
-            matches = [
-                term for term in terms
-                if re.search(rf"\b{re.escape(term)}\b", lower_text, re.IGNORECASE)
-            ]
-            if matches:
-                flagged_labels.append(category)
-                scores[category] = 0.95
-            else:
-                scores[category] = 0.05
+def screen_text(text: str | None) -> TextModerationResult:
+    labels: list[str] = []
+    matched: list[str] = []
+    for label, patterns in _PATTERNS.items():
+        hits = [term for term, pattern in patterns if pattern.search(text or "")]
+        if hits:
+            labels.append(label)
+            matched.extend(hits)
 
-        if "hate_speech" in flagged_labels or "explicit" in flagged_labels:
-            return ModerationResult(
-                is_flagged=True,
-                status="rejected",
-                confidence=0.95,
-                labels=flagged_labels,
-                scores=scores,
-                reason=f"Content violated safety guidelines: {', '.join(flagged_labels)}",
-            )
-        elif "spam" in flagged_labels:
-            return ModerationResult(
-                is_flagged=True,
-                status="flagged",
-                confidence=0.85,
-                labels=flagged_labels,
-                scores=scores,
-                reason="Flagged for manual review: potential spam",
-            )
-
-        return ModerationResult(
-            is_flagged=False,
-            status="approved",
-            confidence=0.98,
-            labels=[],
-            scores=scores,
-        )
-
-    def evaluate_image(self, image_url: str | None) -> ModerationResult:
-        return ModerationResult(
-            is_flagged=False,
-            status="approved",
-            confidence=0.99,
-            labels=[],
-            scores={"nsfw": 0.01, "violence": 0.01},
-        )
-
-moderation_service = ModerationService()
+    if not labels:
+        return TextModerationResult(status="approved")
+    return TextModerationResult(
+        status="flagged",
+        labels=labels,
+        matched_terms=matched,
+        reason=f"Held for review: caption matched {', '.join(labels).replace('_', ' ')} rules",
+    )
