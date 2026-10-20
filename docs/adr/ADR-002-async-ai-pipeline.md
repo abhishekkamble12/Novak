@@ -1,29 +1,30 @@
 # ADR-002: Asynchronous AI Pipeline via BullMQ & Redis
 
 ## Status
-Accepted
-
-## Date
-2026-10-15
+Accepted (amended 2026-10-20: processing states, reconciler, measured latency; see ADR-003)
 
 ## Context
-When a user uploads a photo and publishes a post:
-- Deep neural network inference (embedding extraction, zero-shot tagging, moderation) takes between 150ms to 800ms depending on hardware.
-- Blocking the HTTP response `POST /api/posts` for ML inference degrades client UX, increases p99 latency, and creates thread/socket starvation under traffic bursts.
+Publishing a post triggers caption screening, embedding (bge-small, ~5-10 ms of CPU per caption
+on a laptop), tagging and a Qdrant upsert. Doing this inside `POST /api/posts` would couple
+posting to the AI service and Qdrant: if either is slow or down, nobody can post.
 
 ## Decision
-We decouple post creation from AI processing using an asynchronous message queue:
-1. `POST /api/posts` immediately writes the post record to MongoDB with `moderationStatus: 'pending'` and returns `201 Created` with post metadata in <50ms.
-2. The API enqueues a background job (`post-analysis`) into BullMQ backed by Redis.
-3. BullMQ workers deliver the job payload to the Python AI service or worker consumers.
-4. The AI service computes a 384-dimensional FastEmbed text embedding, runs moderation guardrails, and indexes the vector into Qdrant.
-5. Upon completion, MongoDB is updated and a WebSocket event (`post:processed`) is emitted to the author client.
+1. `POST /api/posts` writes the post to MongoDB (`processingStatus: "pending"`) and returns 201.
+2. It then enqueues a `post-analysis` BullMQ job keyed by the post id. The enqueue fails fast
+   (2 s cap, no offline queue) if Redis is down; the post is already durable.
+3. A worker calls the AI service, which screens and embeds the caption and upserts the vector.
+4. The worker writes the result to MongoDB (`processingStatus: "completed"`) and emits a
+   `post:processed` Socket.IO event to the author.
 
 ## Consequences
 ### Positive
-- Ultra-low user-perceived write latency (<50ms).
-- Graceful degradation: If the AI service experiences temporary backlog or restart, posts remain durable in MongoDB and queue safely in Redis.
-- Horizontal scalability of CPU/GPU worker pools independently of the web API.
+- Posting keeps working when the AI service, Qdrant or Redis is down (verified by
+  `test/integration/redisDown.int.test.ts` and manual outage tests).
+- Measured `POST /api/posts` latency: p50 28 ms unloaded, p50 197 ms at 10 concurrent clients
+  with analysis running on the same laptop (docs/BENCHMARKS.md). The earlier "<50 ms" figure
+  was never measured and has been removed.
 
 ### Negative
-- Eventual consistency: Feed queries must handle posts with `moderationStatus: 'pending'`.
+- Eventual consistency: a post is visible before its caption is screened (optimistic
+  publishing) and becomes searchable a few seconds later.
+- Redis is not the source of truth, so a reconciler is needed to recover lost jobs (ADR-003).

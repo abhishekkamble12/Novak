@@ -42,6 +42,8 @@ INTERNAL_API_SECRET=<random, 32+ chars>   # openssl rand -base64 48
 # The Qdrant Docker service from step 1a, over the private network
 QDRANT_HOST=${{qdrant.RAILWAY_PRIVATE_DOMAIN}}
 QDRANT_PORT=6333
+# Optional: semantic-hit floor (default 0.62, tuned for bge-small; see docs/SEARCH_EVAL.md)
+# SEARCH_MIN_SCORE=0.62
 ```
 
 ### 1c. `api`
@@ -69,11 +71,14 @@ CORS_ORIGIN=https://novak.vercel.app,https://novak-*.vercel.app
 COOKIE_SAMESITE=lax
 # Vercel's proxy + Railway's edge = 2 hops; makes rate limiting see real client IPs
 TRUST_PROXY=2
+# Optional: pending-post reconciler cadence (defaults 60000 / 60000 ms)
+# RECONCILE_INTERVAL_MS=60000
+# RECONCILE_STALE_MS=60000
 ```
 
-The API refuses to start in production if a secret is missing or shorter than 32 characters. That's deliberate.
+The API refuses to start in production if a secret is missing, shorter than 32 characters, or still one of the `.env.example` placeholders. That's deliberate.
 
-**Check it:** `https://<api-domain>/api/health` should return `"database":"healthy","cache":"healthy"`.
+**Check it:** `https://<api-domain>/api/health` should return `"database":"healthy","cache":"healthy"`. `pipeline.pendingPosts` should fall to 0 shortly after posting; if it keeps growing, the API can't reach the AI service. On first deploy over an existing database, every older post is re-analysed once (the processing-status backfill).
 
 ---
 

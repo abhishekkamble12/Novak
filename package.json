@@ -2,7 +2,7 @@
   "name": "novak-monorepo",
   "version": "1.0.0",
   "private": true,
-  "description": "Novak — AI-Native Social Platform (Instagram-scale MERN + FastAPI + Qdrant)",
+  "description": "Novak: a photo-sharing app whose captions are searchable by meaning (Express + MongoDB + BullMQ + FastAPI + Qdrant)",
   "engines": {
     "node": ">=20.11.0 <23"
   },
@@ -17,6 +17,11 @@
     "dev:ai": "cd apps/ai-service && uvicorn app.main:app --reload --port 8000",
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
+    "test:integration": "npm run test:integration --workspace=@novak/api",
+    "test:ai": "cd apps/ai-service && python -m pytest -q",
+    "eval:search": "cd apps/ai-service && python -m eval.run_eval",
+    "bench": "node scripts/bench.mjs",
+    "smoke": "node scripts/smoke.mjs",
     "typecheck": "npm run typecheck --workspace=@novak/contracts && npm run typecheck --workspace=@novak/api && npm run build --workspace=@novak/web",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d mongo redis qdrant",
     "qdrant:up": "docker compose -f infra/docker-compose.yml up -d --wait qdrant",

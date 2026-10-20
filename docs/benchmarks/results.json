@@ -1,0 +1,110 @@
+{
+  "date": "2026-10-20T11:26:37.768Z",
+  "environment": {
+    "os": "Windows_NT 10.0.26200",
+    "cpu": "AMD Ryzen 5 5600H with Radeon Graphics         ",
+    "cores": 12,
+    "memory_gb": 15.4,
+    "node": "v22.16.0",
+    "note": "Client, API, AI service, MongoDB, Redis and Qdrant all on this one machine"
+  },
+  "parameters": {
+    "base": "http://localhost:3000/api",
+    "posts": 300,
+    "concurrency": 10,
+    "requests_per_read_phase": 500,
+    "users": 10
+  },
+  "phases": [
+    {
+      "name": "POST /posts",
+      "requests": 300,
+      "concurrency": 10,
+      "p50_ms": 196.5,
+      "p95_ms": 353.57,
+      "p99_ms": 474.24,
+      "mean_ms": 212.82,
+      "throughput_rps": 46.51,
+      "error_rate": 0,
+      "error_statuses": [],
+      "api_cpu_percent_of_one_core": 109.97,
+      "api_rss_mb_after": 117.12
+    },
+    {
+      "name": "analysis drain",
+      "posts": 300,
+      "seconds_after_last_create": 7.86,
+      "posts_per_second": 20.97,
+      "completed": true
+    },
+    {
+      "name": "GET /posts/feed (anon)",
+      "requests": 500,
+      "concurrency": 10,
+      "p50_ms": 51.68,
+      "p95_ms": 65.63,
+      "p99_ms": 71.77,
+      "mean_ms": 52.73,
+      "throughput_rps": 188.96,
+      "error_rate": 0,
+      "error_statuses": [],
+      "api_cpu_percent_of_one_core": 149.39,
+      "api_rss_mb_after": 129.96
+    },
+    {
+      "name": "GET /posts/feed (signed in)",
+      "requests": 500,
+      "concurrency": 10,
+      "p50_ms": 68.03,
+      "p95_ms": 105.74,
+      "p99_ms": 138.84,
+      "mean_ms": 71.82,
+      "throughput_rps": 138.95,
+      "error_rate": 0,
+      "error_statuses": [],
+      "api_cpu_percent_of_one_core": 114.63,
+      "api_rss_mb_after": 179.29
+    },
+    {
+      "name": "GET /posts/feed (by cursor)",
+      "requests": 500,
+      "concurrency": 10,
+      "p50_ms": 49.56,
+      "p95_ms": 61.83,
+      "p99_ms": 65.08,
+      "mean_ms": 49.82,
+      "throughput_rps": 200.01,
+      "error_rate": 0,
+      "error_statuses": [],
+      "api_cpu_percent_of_one_core": 126.92,
+      "api_rss_mb_after": 204.06
+    },
+    {
+      "name": "GET /search (hybrid)",
+      "requests": 500,
+      "concurrency": 10,
+      "p50_ms": 171.58,
+      "p95_ms": 248.8,
+      "p99_ms": 370.61,
+      "mean_ms": 170.96,
+      "throughput_rps": 58.2,
+      "error_rate": 0,
+      "error_statuses": [],
+      "api_cpu_percent_of_one_core": 82.37,
+      "api_rss_mb_after": 211.54,
+      "modes": {
+        "hybrid": 500
+      }
+    }
+  ],
+  "pipeline_after": {
+    "queue": {
+      "waiting": 0,
+      "active": 0,
+      "delayed": 0,
+      "failed": 1,
+      "paused": 0
+    },
+    "pendingPosts": 0
+  }
+}
