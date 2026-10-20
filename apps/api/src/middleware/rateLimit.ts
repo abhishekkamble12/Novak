@@ -1,5 +1,6 @@
 import rateLimit from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
+import { env } from "../config/env.js";
 import { redis } from "../config/redis.js";
 import { RateLimitError } from "../utils/errors.js";
 
@@ -23,7 +24,7 @@ export const globalRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   passOnStoreError: true, // Degrade gracefully if Redis is temporarily unreachable
-  skip: (req) => req.path.startsWith("/api/health"),
+  skip: (req) => !env.RATE_LIMIT_ENABLED || req.path.startsWith("/api/health"),
   store: createRedisStore("rl:global:"),
   handler: (_req, _res, next) => {
     next(new RateLimitError("Too many requests from this IP. Please try again after 15 minutes."));
@@ -36,6 +37,7 @@ export const authRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   passOnStoreError: true,
+  skip: () => !env.RATE_LIMIT_ENABLED,
   store: createRedisStore("rl:auth:"),
   handler: (_req, _res, next) => {
     next(new RateLimitError("Too many login/register attempts. Please wait 15 minutes before retrying."));

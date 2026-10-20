@@ -17,6 +17,16 @@ const postSchema = new Schema(
       default: "pending",
     },
     moderationReason: { type: String },
+    // Background analysis lifecycle (see PostAnalyzeJob). Mongo is the source of truth;
+    // the reconciler re-enqueues "pending" posts whose job is missing from Redis.
+    processingStatus: {
+      type: String,
+      enum: ["pending", "completed", "failed"],
+      default: "pending",
+    },
+    processingAttempts: { type: Number, default: 0, min: 0 },
+    processingError: { type: String },
+    searchIndexed: { type: Boolean, default: false },
     analyzedAt: { type: Date },
   },
   { timestamps: true }
@@ -25,8 +35,12 @@ const postSchema = new Schema(
 // Feed: newest first, with _id as the tie-breaker for stable cursors
 postSchema.index({ moderationStatus: 1, createdAt: -1, _id: -1 });
 postSchema.index({ author: 1, createdAt: -1, _id: -1 });
-postSchema.index({ aiTags: 1, createdAt: -1 });
-// Keyword fallback when the AI service is unavailable
+// Reconciler scan: tiny, because only pending posts are in it
+postSchema.index(
+  { createdAt: 1 },
+  { name: "pending_processing", partialFilterExpression: { processingStatus: "pending" } }
+);
+// Keyword search (hybrid ranking and the fallback when the AI service is unavailable)
 postSchema.index({ caption: "text", tags: "text", aiTags: "text" });
 
 export type Post = InferSchemaType<typeof postSchema>;

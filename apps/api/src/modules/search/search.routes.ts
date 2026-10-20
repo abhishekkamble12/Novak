@@ -1,16 +1,23 @@
 import { Router } from "express";
 import type { z } from "zod";
-import { SearchQuerySchema, type SearchResponse } from "@novak/contracts";
+import { SearchQuerySchema, type PostDto, type SearchResponse } from "@novak/contracts";
 import { logger } from "../../config/logger.js";
 import { optionalAuth } from "../../middleware/auth.js";
 import { validate } from "../../middleware/validate.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
+import { AppError } from "../../utils/errors.js";
 import { sendSuccess } from "../../utils/responseEnvelope.js";
 import { semanticSearch } from "../ai/aiClient.js";
 import { getPostsByIds, keywordSearch } from "../posts/posts.service.js";
 
 const router = Router();
 
+/**
+ * Hybrid ranking: semantic hits above the AI service's score floor first, then MongoDB
+ * $text matches not already listed. On the labelled eval set this lifted recall@5 from
+ * 0.71 (semantic only) to 0.82 (docs/SEARCH_EVAL.md). The halves fail independently: the
+ * response's mode says which ran, and only when both fail is it a 503.
+ */
 router.get(
   "/",
   optionalAuth,
@@ -20,23 +27,39 @@ router.get(
     const viewerId = req.user?.userId;
     const started = Date.now();
 
-    let response: SearchResponse;
-    try {
-      const ai = await semanticSearch(q, limit, tag);
-      const scores = new Map(ai.results.map((r) => [r.postId, r.score]));
-      // Hydrate from Mongo so counts, likes and moderation state are current
-      const results = (await getPostsByIds(ai.results.map((r) => r.postId), viewerId)).map((p) => ({
+    const [semantic, keyword] = await Promise.all([
+      semanticSearch(q, limit, tag).catch((err: Error) => {
+        // Expected when the AI service or its model is down, so keep it to one line
+        logger.warn({ reason: err.message }, "Semantic search unavailable, using keyword search");
+        return null;
+      }),
+      keywordSearch(q, limit, tag, viewerId).catch((err: Error) => {
+        logger.error({ err }, "Keyword search failed");
+        return null;
+      }),
+    ]);
+    if (!semantic && !keyword) {
+      throw new AppError("Search is temporarily unavailable", 503, "SEARCH_UNAVAILABLE");
+    }
+
+    let results: PostDto[] = keyword ?? [];
+    if (semantic) {
+      const scores = new Map(semantic.results.map((r) => [r.postId, r.score]));
+      // Hydrate from Mongo: visibility, counts and likes are always current, and posts that
+      // were deleted or hidden after indexing are dropped here
+      const ranked = (await getPostsByIds([...scores.keys()], viewerId)).map((p) => ({
         ...p,
         score: scores.get(p.id),
       }));
-      response = { results, mode: "semantic", latencyMs: Date.now() - started };
-    } catch (err) {
-      // Expected when the AI service or its embedding model is down, so keep it to one line
-      logger.warn({ reason: (err as Error).message }, "Semantic search unavailable, using keyword search");
-      const results = await keywordSearch(q, limit, tag, viewerId);
-      response = { results, mode: "keyword", latencyMs: Date.now() - started };
+      const seen = new Set(ranked.map((p) => p.id));
+      results = [...ranked, ...(keyword ?? []).filter((p) => !seen.has(p.id))].slice(0, limit);
     }
 
+    const response: SearchResponse = {
+      results,
+      mode: semantic && keyword ? "hybrid" : semantic ? "semantic" : "keyword",
+      latencyMs: Date.now() - started,
+    };
     sendSuccess(res, response);
   })
 );

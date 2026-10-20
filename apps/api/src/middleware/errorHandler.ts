@@ -36,8 +36,10 @@ export function errorHandler(err: Error, req: Request, res: Response, next: Next
   }
 
   // 2. Validation errors: surface the first message so the UI can show it directly
-  if (err instanceof ZodError) {
-    const details = err.errors.map((e) => ({ path: e.path.join("."), message: e.message }));
+  // Name check too: @novak/contracts may load a second copy of zod (CJS vs ESM build),
+  // whose ZodError fails instanceof against ours
+  if (err instanceof ZodError || err.name === "ZodError") {
+    const details = (err as ZodError).errors.map((e) => ({ path: e.path.join("."), message: e.message }));
     return send(req, res, 400, "VALIDATION_ERROR", details[0]?.message ?? "Invalid request", details);
   }
 

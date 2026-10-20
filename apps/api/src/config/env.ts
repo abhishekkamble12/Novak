@@ -44,8 +44,13 @@ const envSchema = z
     AI_SERVICE_URL: z.string().default("http://localhost:8000"),
     INTERNAL_API_SECRET: z.string().default(DEV_INTERNAL_SECRET),
     AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().default(60000),
-    // Run the BullMQ post-analysis worker inside this process
+    // Run the BullMQ post-analysis worker (and the pending-post reconciler) in this process
     ENABLE_WORKER: booleanString.default("true"),
+    // How often the reconciler runs, and how old a pending post must be before it's checked
+    RECONCILE_INTERVAL_MS: z.coerce.number().int().min(1000).default(60000),
+    RECONCILE_STALE_MS: z.coerce.number().int().min(0).default(60000),
+    // Per-IP limits backed by Redis. Disable only for local load tests.
+    RATE_LIMIT_ENABLED: booleanString.default("true"),
 
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
   })
@@ -53,7 +58,8 @@ const envSchema = z
     if (data.NODE_ENV !== "production") return;
     const requireSecret = (key: keyof typeof data, devDefault: string) => {
       const value = data[key] as string;
-      if (value === devDefault || value.length < 32) {
+      // Also rejects the placeholders shipped in .env.example
+      if (value === devDefault || value.length < 32 || /change-me|development|internal-ai-service/i.test(value)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: `${key} must be set to a random value of at least 32 characters in production`,

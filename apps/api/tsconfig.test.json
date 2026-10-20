@@ -1,0 +1,8 @@
+{
+  // Typechecks tests and scripts too (the build config only covers src/)
+  "extends": "./tsconfig.json",
+  // Vitest runs tests as ESM, so check them that way (the build emits CommonJS)
+  "compilerOptions": { "rootDir": ".", "noEmit": true, "module": "ESNext", "moduleResolution": "Bundler" },
+  "include": ["src/**/*", "test/**/*", "scripts/**/*", "*.config.ts"],
+  "exclude": []
+}

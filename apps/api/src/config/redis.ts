@@ -30,10 +30,15 @@ redis.on("error", (err) => {
   logger.error({ err }, "Redis client encountered an error");
 });
 
-// Dedicated factory for BullMQ which requires maxRetriesPerRequest: null
-export function createBullConnection(): Redis {
+/**
+ * Connections for BullMQ. Workers need maxRetriesPerRequest: null (blocking commands wait
+ * out reconnects). Producers pass failFast: commands are rejected immediately while Redis
+ * is disconnected instead of queueing, so a request that enqueues can't hang on an outage.
+ */
+export function createBullConnection({ failFast = false }: { failFast?: boolean } = {}): Redis {
   const connection = new Redis(env.REDIS_URL, {
-    maxRetriesPerRequest: null,
+    maxRetriesPerRequest: failFast ? 1 : null,
+    enableOfflineQueue: !failFast,
     enableReadyCheck: true,
     family: 0,
   });

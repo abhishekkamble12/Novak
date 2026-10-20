@@ -1,11 +1,21 @@
 import { FilterQuery, Types } from "mongoose";
-import type { CreatePostInput, ModerationStatus, PostDto, TrendingTag } from "@novak/contracts";
+import type {
+  CreatePostInput,
+  ModerationStatus,
+  PostDto,
+  ProcessingStatus,
+  TrendingTag,
+} from "@novak/contracts";
 import { decodeCursor, encodeCursor } from "../../utils/cursor.js";
-import { BadRequestError, ForbiddenError, NotFoundError } from "../../utils/errors.js";
+import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from "../../utils/errors.js";
 import { UserModel } from "../users/user.model.js";
 import { LikeModel, Post, PostModel } from "./post.model.js";
 
-/** Statuses everyone may see. Authors also see their own pending/flagged posts. */
+/**
+ * Statuses everyone may see. Posts are published immediately and hidden afterwards if the
+ * caption is flagged (optimistic publishing: the AI service being down must not block
+ * posting). Authors also see their own flagged posts, with the reason.
+ */
 const PUBLIC_STATUSES: ModerationStatus[] = ["approved", "pending"];
 
 interface AuthorFields {
@@ -67,6 +77,8 @@ export async function toPostDtos(posts: PostWithAuthor[], viewerId?: string): Pr
       hasLiked: likedIds.has(p._id.toString()),
       moderationStatus: p.moderationStatus as ModerationStatus,
       moderationReason: p.moderationReason || undefined,
+      processingStatus: (p.processingStatus ?? "pending") as ProcessingStatus,
+      searchIndexed: p.searchIndexed ?? false,
       aiTags: p.aiTags ?? [],
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
@@ -162,6 +174,24 @@ export async function createPost(authorId: string, input: CreatePostInput) {
   return post;
 }
 
+/**
+ * Author-initiated retry of a post whose analysis failed terminally. Resets it to pending;
+ * the caller enqueues it (and if that fails, the reconciler will).
+ */
+export async function resetFailedProcessing(postId: string, userId: string) {
+  const post = await PostModel.findOneAndUpdate(
+    { _id: postId, author: userId, processingStatus: "failed" },
+    { $set: { processingStatus: "pending", processingAttempts: 0 }, $unset: { processingError: 1 } },
+    { new: true }
+  ).lean();
+  if (post) return post;
+
+  const existing = await PostModel.findById(postId).select("author processingStatus").lean();
+  if (!existing) throw new NotFoundError("Post not found");
+  if (existing.author.toString() !== userId) throw new ForbiddenError("You can only retry your own posts");
+  throw new ConflictError(`Post analysis is ${existing.processingStatus}, not failed`);
+}
+
 export async function deletePost(postId: string, userId: string): Promise<void> {
   if (!Types.ObjectId.isValid(postId)) throw new NotFoundError("Post not found");
   const post = await PostModel.findById(postId);
@@ -219,7 +249,7 @@ export async function getTrendingTags(limit = 10): Promise<TrendingTag[]> {
   return rows.map((r) => ({ tag: r._id, count: r.count }));
 }
 
-/** Keyword search used when the AI service is unavailable. */
+/** MongoDB $text search: blended into semantic results, and the fallback when the AI service is down. */
 export async function keywordSearch(
   q: string,
   limit: number,
@@ -229,7 +259,7 @@ export async function keywordSearch(
   const conditions: FilterQuery<Post>[] = [{ $text: { $search: q } }, visibilityFilter(viewerId)];
   if (tag) conditions.push({ $or: [{ tags: tag }, { aiTags: tag }] });
   const docs = await PostModel.find({ $and: conditions }, { score: { $meta: "textScore" } })
-    .sort({ score: { $meta: "textScore" } })
+    .sort({ score: { $meta: "textScore" }, _id: -1 })
     .limit(limit)
     .populate<{ author: AuthorFields | null }>("author", AUTHOR_FIELDS)
     .lean<PostWithAuthor[]>();

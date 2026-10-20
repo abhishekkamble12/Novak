@@ -1,41 +1,35 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   CreatePostInputSchema,
+  PostAnalyzeJobSchema,
   PostAnalyzedResultSchema,
   RegisterInputSchema,
   SemanticSearchResponseSchema,
 } from "@novak/contracts";
 
-// Payloads exactly as the FastAPI service serializes them (camelCase aliases)
+// Fixtures are generated from the real FastAPI responses by
+// apps/ai-service/tests/test_contract_fixtures.py, so both sides are checked against one file.
+const fixture = (name: string) =>
+  JSON.parse(readFileSync(new URL(`../../../packages/contracts/fixtures/${name}`, import.meta.url), "utf-8"));
+
 describe("AI service contract", () => {
-  it("accepts the analyze-post response", () => {
-    const parsed = PostAnalyzedResultSchema.parse({
-      postId: "p1",
-      tags: ["beach"],
-      indexed: true,
-      moderation: {
-        isFlagged: false,
-        status: "approved",
-        confidence: 0.98,
-        labels: [],
-        scores: { spam: 0.05 },
-        reason: null,
-      },
-    });
+  it("parses the analyze-post response", () => {
+    const parsed = PostAnalyzedResultSchema.parse(fixture("analyze-post.response.json"));
+    expect(parsed.moderation.status).toBe("flagged");
     expect(parsed.indexed).toBe(true);
   });
 
-  it("accepts the search response", () => {
-    expect(() =>
-      SemanticSearchResponseSchema.parse({
-        results: [
-          { postId: "p1", score: 0.31, caption: "", mediaUrl: "https://x/y.jpg", authorUsername: "a", tags: [] },
-        ],
-        total: 1,
-        query: "dog",
-        latencyMs: 12.5,
-      })
-    ).not.toThrow();
+  it("sends an analyze-post request the service accepts", () => {
+    // The fixture is the payload the Python tests post; our job schema must produce the same shape
+    const job = PostAnalyzeJobSchema.parse(fixture("analyze-post.request.json"));
+    expect(Object.keys(job).sort()).toEqual(Object.keys(fixture("analyze-post.request.json")).sort());
+  });
+
+  it("parses the search response", () => {
+    const parsed = SemanticSearchResponseSchema.parse(fixture("search.response.json"));
+    expect(parsed.results[0].postId).toBe("65f000000000000000000001");
+    expect(parsed.minScore).toBe(0.62);
   });
 });
 

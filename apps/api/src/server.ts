@@ -6,6 +6,7 @@ import { connectDB, disconnectDB } from "./config/db.js";
 import { disconnectRedis } from "./config/redis.js";
 import { createSocketServer } from "./realtime/socket.js";
 import { closePostAnalysis, startPostAnalysisWorker } from "./modules/ai/postAnalysis.queue.js";
+import { backfillProcessingStatus } from "./modules/posts/migrations.js";
 
 async function bootstrap() {
   await connectDB();
@@ -16,6 +17,7 @@ async function bootstrap() {
 
   if (env.ENABLE_WORKER) {
     startPostAnalysisWorker();
+    backfillProcessingStatus().catch((err) => logger.warn({ err }, "Processing-status backfill failed"));
   }
 
   // Binding without a host listens on "::", i.e. IPv4 and IPv6. Railway's private

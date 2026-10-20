@@ -7,7 +7,7 @@ import { validate } from "../../middleware/validate.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { sendSuccess } from "../../utils/responseEnvelope.js";
 import { deletePostVector } from "../ai/aiClient.js";
-import { enqueuePostAnalysis } from "../ai/postAnalysis.queue.js";
+import { analyzeJobFor, enqueuePostAnalysis } from "../ai/postAnalysis.queue.js";
 import * as posts from "./posts.service.js";
 
 const PostIdParams = z.object({ id: z.string().regex(/^[a-f0-9]{24}$/i, "Invalid post id") });
@@ -40,19 +40,11 @@ router.post(
     const user = currentUser(req);
     const post = await posts.createPost(user.userId, req.body);
 
-    try {
-      await enqueuePostAnalysis({
-        postId: post.id,
-        authorId: user.userId,
-        authorUsername: user.username,
-        mediaUrl: post.mediaUrl,
-        caption: post.caption,
-        timestamp: post.createdAt.getTime(),
-      });
-    } catch (err) {
-      // The post is saved either way; it stays "pending" until analysis can run
-      logger.error({ err, postId: post.id }, "Failed to enqueue post analysis");
-    }
+    // The post is durable in Mongo before this runs. If Redis is down the enqueue fails
+    // fast, the post stays "pending", and the reconciler enqueues it once Redis is back.
+    await enqueuePostAnalysis(analyzeJobFor(post, { id: user.userId, username: user.username })).catch((err) =>
+      logger.warn({ err: (err as Error).message, postId: post.id }, "Enqueue failed; reconciler will retry")
+    );
 
     sendSuccess(res, await posts.getPost(post.id, user.userId), 201);
   })
@@ -77,6 +69,22 @@ router.delete(
       logger.warn({ err, postId: req.params.id }, "Failed to delete post vector")
     );
     sendSuccess(res, { deleted: true });
+  })
+);
+
+router.post(
+  "/:id/reprocess",
+  requireAuth,
+  validate({ params: PostIdParams }),
+  asyncHandler(async (req, res) => {
+    const user = currentUser(req);
+    const post = await posts.resetFailedProcessing(req.params.id, user.userId);
+    await enqueuePostAnalysis(analyzeJobFor(post, { id: user.userId, username: user.username }), {
+      replace: true,
+    }).catch((err) =>
+      logger.warn({ err: (err as Error).message, postId: req.params.id }, "Enqueue failed; reconciler will retry")
+    );
+    sendSuccess(res, await posts.getPost(req.params.id, user.userId), 202);
   })
 );
 
