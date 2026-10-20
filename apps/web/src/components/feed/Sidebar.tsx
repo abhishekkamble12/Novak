@@ -64,6 +64,9 @@ export const AboutCard: React.FC = () => (
       <Sparkles className="w-3.5 h-3.5" />
       <span>How Novak works</span>
     </div>
-    <p>Every post is moderated and tagged by AI, then indexed as vector embeddings in Qdrant so Explore can find it by meaning.</p>
+    <p>
+      Each caption is embedded with a small text model and stored in Qdrant, so Explore can match it by meaning
+      as well as by keywords. Images themselves aren't analysed.
+    </p>
   </div>
 );

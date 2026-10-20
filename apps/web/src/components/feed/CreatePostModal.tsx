@@ -176,7 +176,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClos
               maxLength={2200}
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
-              placeholder="Write a caption… AI adds tags and makes your post searchable by meaning."
+              placeholder="Write a caption… it is indexed so Explore can find your post by meaning."
               className="w-full bg-surface border border-surface-border rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 resize-none"
             />
           </div>

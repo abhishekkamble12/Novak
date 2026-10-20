@@ -24,8 +24,11 @@ export const PostGrid: React.FC<{ posts: PostDto[]; showScore?: boolean }> = ({ 
           </span>
         )}
         {showScore && typeof post.score === "number" && (
-          <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-pink-500/80 text-[11px] font-bold text-white">
-            {Math.round(post.score * 100)}% match
+          <span
+            className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-pink-500/80 text-[11px] font-bold text-white"
+            title="Cosine similarity between your query and the caption (not a probability)"
+          >
+            {post.score.toFixed(2)}
           </span>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">

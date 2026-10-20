@@ -60,10 +60,10 @@ export const ExplorePage: React.FC = () => {
         <div className="relative z-10 max-w-2xl mx-auto text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-xs font-semibold text-pink-400">
             <Sparkles className="w-3.5 h-3.5" />
-            AI semantic search
+            Semantic caption search
           </div>
           <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Find images by <span className="text-gradient">meaning</span>, not just keywords
+            Search captions by <span className="text-gradient">meaning</span>, not just keywords
           </h2>
           <form onSubmit={handleSubmit} className="relative" role="search">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -72,7 +72,7 @@ export const ExplorePage: React.FC = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               maxLength={200}
-              placeholder="Try 'neon reflections in the rain' or 'a dog on the beach'"
+              placeholder="Try 'caffeine fix' or 'climbing a mountain'"
               aria-label="Search posts"
               className="w-full pl-12 pr-28 py-3.5 rounded-xl bg-surface/90 border border-surface-border text-white placeholder-slate-400 focus:outline-none focus:border-brand-500 text-sm"
             />
@@ -104,22 +104,27 @@ export const ExplorePage: React.FC = () => {
             <span>
               {search.data.results.length} {search.data.results.length === 1 ? "result" : "results"} for "{q}"
             </span>
-            {search.data.mode === "semantic" ? (
-              <span className="flex items-center gap-1 text-pink-400 font-medium">
-                <Sparkles className="w-3.5 h-3.5" /> Semantic match · {Math.round(search.data.latencyMs)} ms
+            {search.data.mode !== "keyword" ? (
+              <span
+                className="flex items-center gap-1 text-pink-400 font-medium"
+                title="Caption-meaning matches first (with similarity score), then keyword matches"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                {search.data.mode === "hybrid" ? "Semantic + keyword" : "Semantic"} ·{" "}
+                {Math.round(search.data.latencyMs)} ms
               </span>
             ) : (
-              <span className="flex items-center gap-1" title="The AI index is unavailable, so results match words">
-                <Type className="w-3.5 h-3.5" /> Keyword match
+              <span className="flex items-center gap-1 text-amber-300" role="status">
+                <Type className="w-3.5 h-3.5" /> Keyword results only: semantic search is unavailable right now
               </span>
             )}
           </div>
           {search.data.results.length === 0 ? (
             <EmptyState icon={<SearchX className="w-6 h-6" />} title="Nothing found">
-              <p>Try different words, or describe what's in the picture.</p>
+              <p>Try different words, or describe what the caption might say.</p>
             </EmptyState>
           ) : (
-            <PostGrid posts={search.data.results} showScore={search.data.mode === "semantic"} />
+            <PostGrid posts={search.data.results} showScore />
           )}
         </section>
       )}

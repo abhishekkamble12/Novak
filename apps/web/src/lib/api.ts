@@ -51,7 +51,20 @@ export function refreshSession(): Promise<AuthResult | null> {
 
 type RetriableConfig = InternalAxiosRequestConfig & { _retried?: boolean };
 
-api.interceptors.response.use(undefined, async (error: AxiosError) => {
+export const NOT_API_MESSAGE =
+  "The server returned something other than the Novak API. Check that /api is routed to the API.";
+
+api.interceptors.response.use(
+  (res) => {
+    // A misrouted /api (e.g. a static host serving index.html) answers 200 with HTML. Treat it
+    // as an error here instead of letting `res.data.data` be undefined further down.
+    const body = res.data as { success?: unknown } | undefined;
+    if (!body || typeof body !== "object" || body.success !== true) {
+      return Promise.reject(new AxiosError(NOT_API_MESSAGE, "ERR_NOT_API", res.config, res.request, res));
+    }
+    return res;
+  },
+  async (error: AxiosError) => {
   const config = error.config as RetriableConfig | undefined;
   const isAuthCall = config?.url?.startsWith("/auth/");
   if (
@@ -66,11 +79,13 @@ api.interceptors.response.use(undefined, async (error: AxiosError) => {
     if (session) return api(config);
   }
   return Promise.reject(error);
-});
+  }
+);
 
 /** Human-readable message from an API error envelope, or a network-level fallback. */
 export function errorMessage(err: unknown, fallback = "Something went wrong. Please try again."): string {
   if (axios.isAxiosError(err)) {
+    if (err.code === "ERR_NOT_API") return NOT_API_MESSAGE;
     const message = (err.response?.data as { error?: { message?: string } } | undefined)?.error?.message;
     if (message) return message;
     if (!err.response) return "Can't reach the server. Check your connection.";
@@ -107,6 +122,7 @@ export const postsApi = {
   get: (id: string) => api.get<ApiSuccess<PostDto>>(`/posts/${id}`).then(data),
   create: (input: CreatePostInput) => api.post<ApiSuccess<PostDto>>("/posts", input).then(data),
   remove: (id: string) => api.delete(`/posts/${id}`),
+  reprocess: (id: string) => api.post<ApiSuccess<PostDto>>(`/posts/${id}/reprocess`).then(data),
   like: (id: string) =>
     api.post<ApiSuccess<{ liked: boolean; likesCount: number }>>(`/posts/${id}/like`).then(data),
   unlike: (id: string) =>

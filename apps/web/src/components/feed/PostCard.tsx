@@ -2,12 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  AlertTriangle,
   Heart,
   Link2,
   Loader2,
   MoreHorizontal,
+  SearchCheck,
   ShieldAlert,
-  ShieldCheck,
   Sparkles,
   Trash2,
 } from "lucide-react";
@@ -18,31 +19,55 @@ import { removePost, updatePost } from "../../lib/postCache";
 import { useAuthStore } from "../../store/useAuthStore";
 import { Avatar } from "../ui/Avatar";
 
-const StatusBadge: React.FC<{ post: PostDto }> = ({ post }) => {
-  switch (post.moderationStatus) {
-    case "approved":
-      return (
-        <span title="Checked by AI moderation">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" aria-label="Checked by AI moderation" />
-        </span>
-      );
-    case "pending":
-      return (
-        <span className="flex items-center gap-1 text-[10px] font-semibold text-sky-300 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded-full">
-          <Loader2 className="w-3 h-3 animate-spin" /> AI analyzing
-        </span>
-      );
-    default:
-      // Only the author ever sees their own flagged posts
-      return (
-        <span
-          title={post.moderationReason}
-          className="flex items-center gap-1 text-[10px] font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full"
-        >
-          <ShieldAlert className="w-3 h-3" /> Under review · only you can see this
-        </span>
-      );
+const badge = "flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border";
+
+/** Processing and review state. Only the author sees it; other viewers just see the post. */
+export const StatusBadge: React.FC<{ post: PostDto; isOwner: boolean }> = ({ post, isOwner }) => {
+  const qc = useQueryClient();
+  const retry = useMutation({
+    mutationFn: () => postsApi.reprocess(post.id),
+    onSuccess: (updated) => updatePost(qc, post.id, () => updated),
+  });
+
+  if (!isOwner) return null;
+
+  if (post.processingStatus === "pending") {
+    return (
+      <span className={`${badge} text-sky-300 bg-sky-500/10 border-sky-500/20`} role="status">
+        <Loader2 className="w-3 h-3 animate-spin" /> Processing
+      </span>
+    );
   }
+  if (post.processingStatus === "failed") {
+    return (
+      <span className={`${badge} text-rose-300 bg-rose-500/10 border-rose-500/20`} role="status">
+        <AlertTriangle className="w-3 h-3" />
+        {retry.isError ? "Retry failed" : "Not searchable yet"}
+        <button
+          onClick={() => retry.mutate()}
+          disabled={retry.isPending}
+          className="ml-1 underline hover:text-white disabled:opacity-60"
+        >
+          {retry.isPending ? "Retrying…" : "Retry"}
+        </button>
+      </span>
+    );
+  }
+  if (post.moderationStatus === "flagged") {
+    return (
+      <span title={post.moderationReason} className={`${badge} text-amber-300 bg-amber-500/10 border-amber-500/20`}>
+        <ShieldAlert className="w-3 h-3" /> Held for review · only you can see this
+      </span>
+    );
+  }
+  if (post.searchIndexed) {
+    return (
+      <span title="Your caption is indexed for semantic search">
+        <SearchCheck className="w-4 h-4 text-emerald-400" aria-label="Indexed for search" />
+      </span>
+    );
+  }
+  return null;
 };
 
 export const PostCard: React.FC<{ post: PostDto }> = ({ post }) => {
@@ -128,18 +153,19 @@ export const PostCard: React.FC<{ post: PostDto }> = ({ post }) => {
   return (
     <article className="glass-panel rounded-2xl overflow-hidden shadow-glass">
       <header className="flex items-center justify-between p-4">
-        <Link to={`/u/${post.authorUsername}`} className="flex items-center gap-3 min-w-0">
-          <Avatar src={post.authorAvatarUrl} name={post.authorName} />
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-semibold text-sm text-white hover:underline truncate">
+        <div className="flex items-center gap-2 min-w-0 flex-wrap">
+          <Link to={`/u/${post.authorUsername}`} className="flex items-center gap-3 min-w-0">
+            <Avatar src={post.authorAvatarUrl} name={post.authorName} />
+            <div className="min-w-0">
+              <span className="block font-semibold text-sm text-white hover:underline truncate">
                 {post.authorUsername}
               </span>
-              <StatusBadge post={post} />
+              <span className="text-[11px] text-slate-400">{timeAgo(post.createdAt)}</span>
             </div>
-            <span className="text-[11px] text-slate-400">{timeAgo(post.createdAt)}</span>
-          </div>
-        </Link>
+          </Link>
+          {/* Outside the link: the badge can contain a Retry button */}
+          <StatusBadge post={post} isOwner={isOwner} />
+        </div>
 
         <div className="relative" ref={menuRef}>
           <button
@@ -170,7 +196,7 @@ export const PostCard: React.FC<{ post: PostDto }> = ({ post }) => {
         </div>
       </header>
 
-      <div className="relative bg-black select-none" onDoubleClick={handleDoubleClick}>
+      <div className="relative bg-black select-none overflow-hidden break-words" onDoubleClick={handleDoubleClick}>
         <img
           src={post.mediaUrl}
           alt={post.caption || `Post by ${post.authorUsername}`}

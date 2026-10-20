@@ -23,14 +23,14 @@ export const FeedPage: React.FC<{ onCreate: () => void }> = ({ onCreate }) => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-2 space-y-6">
+      <div className="lg:col-span-2 space-y-6 min-w-0">
         {feed.isPending ? (
           <Spinner label="Loading your feed…" />
         ) : feed.isError ? (
           <ErrorState message={errorMessage(feed.error)} onRetry={() => feed.refetch()} />
         ) : posts.length === 0 ? (
           <EmptyState icon={<ImagePlus className="w-6 h-6" />} title="No posts yet">
-            <p>Be the first to share something. AI will tag it and make it searchable.</p>
+            <p>Be the first to share something. Its caption becomes searchable by meaning.</p>
             {signedIn ? (
               <button
                 onClick={onCreate}
