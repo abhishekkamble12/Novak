@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { AnyZodObject, ZodError } from "zod";
+import { AnyZodObject } from "zod";
 
 interface ValidationSchemas {
   body?: AnyZodObject;
@@ -8,7 +8,7 @@ interface ValidationSchemas {
 }
 
 export function validate(schemas: ValidationSchemas) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, _res: Response, next: NextFunction) => {
     try {
       if (schemas.body) {
         req.body = await schemas.body.parseAsync(req.body);
@@ -21,11 +21,8 @@ export function validate(schemas: ValidationSchemas) {
       }
       next();
     } catch (error) {
-      if (error instanceof ZodError) {
-        next(error);
-      } else {
-        next(error);
-      }
+      // ZodErrors become 400s in errorHandler
+      next(error);
     }
   };
 }

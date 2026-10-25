@@ -152,11 +152,6 @@ def mongo_rankings(uri, posts, ai_tags, queries):
         coll.drop()
 
 
-# Regression floors for --check, a little under the measured values in docs/SEARCH_EVAL.md
-# so a model, prompt or document-text change that hurts retrieval fails CI.
-CHECKS = {"semantic_ndcg10_all": 0.85, "semantic_paraphrase_recall5": 0.80, "thresholded_test_f1": 0.55}
-
-
 # Regression floors for --check, a little under the measured values in docs/SEARCH_EVAL.md,
 # so a model, prompt or document-text change that hurts retrieval fails CI.
 CHECKS = {"semantic_ndcg10_all": 0.85, "semantic_paraphrase_recall5": 0.80, "thresholded_test_f1": 0.55}

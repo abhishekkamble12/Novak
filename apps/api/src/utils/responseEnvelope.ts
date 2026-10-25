@@ -23,23 +23,3 @@ export function sendSuccess<T>(
     },
   });
 }
-
-export function sendError(
-  res: Response,
-  statusCode: number,
-  code: string,
-  message: string,
-  details?: unknown
-) {
-  return res.status(statusCode).json({
-    success: false,
-    error: {
-      code,
-      message,
-      details,
-    },
-    meta: {
-      timestamp: new Date().toISOString(),
-    },
-  });
-}

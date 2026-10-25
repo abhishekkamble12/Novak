@@ -108,7 +108,6 @@ class QdrantVectorStore:
             collection_name=settings.QDRANT_COLLECTION_POSTS,
             points_selector=qmodels.PointIdsList(points=[point_id_for(post_id)]),
         )
-        return True
 
     def search_posts(
         self,
