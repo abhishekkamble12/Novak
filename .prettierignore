@@ -1,0 +1,7 @@
+dist/
+coverage/
+node_modules/
+package-lock.json
+apps/ai-service/
+docs/benchmarks/*.json
+*.md

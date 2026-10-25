@@ -1,0 +1,4 @@
+# Store and check out text as LF on every OS, so Prettier/ruff and Windows checkouts agree
+* text=auto eol=lf
+*.jpg binary
+*.png binary
