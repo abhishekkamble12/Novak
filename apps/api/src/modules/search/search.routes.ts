@@ -14,9 +14,11 @@ const router = Router();
 
 /**
  * Hybrid ranking: semantic hits above the AI service's score floor first, then MongoDB
- * $text matches not already listed. On the labelled eval set this lifted recall@5 from
- * 0.71 (semantic only) to 0.82 (docs/SEARCH_EVAL.md). The halves fail independently: the
- * response's mode says which ran, and only when both fail is it a 503.
+ * $text matches not already listed. On the labelled eval set, appending keyword matches lifted
+ * recall@5 from 0.71 (semantic above the 0.62 floor) to 0.82 (docs/SEARCH_EVAL.md). The floor
+ * itself costs recall (0.89 without it) but stops no-answer queries returning junk.
+ * The halves fail independently: the response's mode says which ran, and only when both
+ * fail is it a 503.
  */
 router.get(
   "/",
