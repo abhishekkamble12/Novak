@@ -2,3 +2,5 @@
 #   git config blame.ignoreRevsFile .git-blame-ignore-revs
 # style: apply Prettier
 d926df953c4d83c4fa5eb54f3c43f2ed2235af10
+# style(ai): apply ruff format
+ba0fc7549e02735e79b906af19779021fae962c0
