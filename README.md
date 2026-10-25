@@ -225,6 +225,11 @@ Deploying to Railway and Vercel: [DEPLOYMENT.md](DEPLOYMENT.md).
 - The AI service trusts its network, plus the `X-Internal-Secret` header when `AI_ENV=production`.
   Don't expose it publicly.
 - Image URLs are user-supplied and served as-is: there's no media proxy or upload scanning.
+- **Accepted advisory:** Zod 3 is affected by [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)
+  (validation issues pile up per invalid array element; fixed only in Zod 4). The 100 kB body limit
+  bounds it: the worst request that fits (50,000 invalid tags) costs about 45 ms of CPU and 16 MB of
+  short-lived heap, and requests are rate-limited per IP. Migrating to Zod 4 changes `.default()`
+  semantics across all three packages, so it's a planned change rather than a hotfix.
 - The worker and reconciler run inside the API process. That's fine at this size; at larger scale
   they'd be split out ([ARCHITECTURE.md](docs/ARCHITECTURE.md#what-id-change-at-larger-scale)).
 
