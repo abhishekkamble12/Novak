@@ -81,7 +81,11 @@ export const ExplorePage: React.FC = () => {
               disabled={search.isFetching}
               className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 rounded-lg bg-gradient-brand text-white font-medium text-xs shadow-neon flex items-center gap-1 disabled:opacity-60"
             >
-              {search.isFetching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+              {search.isFetching ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Zap className="w-3.5 h-3.5" />
+              )}
               Search
             </button>
           </form>
@@ -115,7 +119,8 @@ export const ExplorePage: React.FC = () => {
               </span>
             ) : (
               <span className="flex items-center gap-1 text-amber-300" role="status">
-                <Type className="w-3.5 h-3.5" /> Keyword results only: semantic search is unavailable right now
+                <Type className="w-3.5 h-3.5" /> Keyword results only: semantic search is unavailable right
+                now
               </span>
             )}
           </div>

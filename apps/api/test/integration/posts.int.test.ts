@@ -29,7 +29,10 @@ describe("creating posts", () => {
 
   it("rejects unauthenticated, invalid and malformed requests", async () => {
     await request(app).post("/api/posts").send({ mediaUrl: "https://x.dev/a.jpg" }).expect(401);
-    const bad = await request(app).post("/api/posts").set(alice.auth).send({ mediaUrl: "http://x.dev/a.jpg" });
+    const bad = await request(app)
+      .post("/api/posts")
+      .set(alice.auth)
+      .send({ mediaUrl: "http://x.dev/a.jpg" });
     expect(bad.status).toBe(400);
     expect(bad.body.error.code).toBe("VALIDATION_ERROR");
     await request(app)
@@ -56,7 +59,10 @@ describe("visibility", () => {
       { _id: flaggedId },
       { moderationStatus: "flagged", moderationReason: "spam", processingStatus: "completed" }
     );
-    await PostModel.updateOne({ _id: rejectedId }, { moderationStatus: "rejected", processingStatus: "completed" });
+    await PostModel.updateOne(
+      { _id: rejectedId },
+      { moderationStatus: "rejected", processingStatus: "completed" }
+    );
   });
 
   const feedIds = async (user?: TestUser) => {
@@ -74,7 +80,10 @@ describe("visibility", () => {
     await request(app).get(`/api/posts/${flaggedId}`).set(bob.auth).expect(404);
     await request(app).get(`/api/posts/${flaggedId}`).expect(404);
 
-    const profile = await request(app).get(`/api/users/${alice.username}/posts?limit=50`).set(bob.auth).expect(200);
+    const profile = await request(app)
+      .get(`/api/users/${alice.username}/posts?limit=50`)
+      .set(bob.auth)
+      .expect(200);
     expect(profile.body.data.map((p: { id: string }) => p.id)).not.toContain(flaggedId);
 
     // Keyword search (AI service is unreachable in this suite)

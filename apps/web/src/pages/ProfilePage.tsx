@@ -79,7 +79,11 @@ const EditProfile: React.FC<{ user: UserSummary; onDone: () => void }> = ({ user
         >
           {save.isPending && <Loader2 className="w-4 h-4 animate-spin" />} Save
         </button>
-        <button type="button" onClick={onDone} className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:text-white">
+        <button
+          type="button"
+          onClick={onDone}
+          className="px-4 py-2 rounded-xl text-sm text-slate-400 hover:text-white"
+        >
           Cancel
         </button>
       </div>
@@ -150,11 +154,13 @@ export const ProfilePage: React.FC = () => {
               {user.bio && <p className="text-sm text-slate-200 whitespace-pre-line">{user.bio}</p>}
               <div className="flex items-center justify-center sm:justify-start gap-5 text-sm text-slate-300 pt-1">
                 <span>
-                  <strong className="text-white">{user.postsCount}</strong> {user.postsCount === 1 ? "post" : "posts"}
+                  <strong className="text-white">{user.postsCount}</strong>{" "}
+                  {user.postsCount === 1 ? "post" : "posts"}
                 </span>
                 <span className="flex items-center gap-1 text-slate-400 text-xs">
                   <CalendarDays className="w-3.5 h-3.5" />
-                  Joined {new Date(user.createdAt).toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+                  Joined{" "}
+                  {new Date(user.createdAt).toLocaleDateString(undefined, { month: "long", year: "numeric" })}
                 </span>
               </div>
             </>

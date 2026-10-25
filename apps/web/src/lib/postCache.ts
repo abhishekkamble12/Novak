@@ -17,8 +17,7 @@ export const postKeys = {
 type PostsData = InfiniteData<Page<PostDto>> | SearchResponse | PostDto;
 
 function mapPosts(data: PostsData, fn: (post: PostDto) => PostDto | null): PostsData {
-  const apply = (posts: PostDto[]) =>
-    posts.map(fn).filter((p): p is PostDto => p !== null);
+  const apply = (posts: PostDto[]) => posts.map(fn).filter((p): p is PostDto => p !== null);
 
   if ("pages" in data) {
     return { ...data, pages: data.pages.map((pg) => ({ ...pg, items: apply(pg.items) })) };

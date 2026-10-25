@@ -10,7 +10,9 @@
  * proxies /api and /socket.io. In local dev it's the Vite server (http://localhost:5173).
  */
 const args = Object.fromEntries(
-  process.argv.slice(2).reduce((acc, a, i, all) => (a.startsWith("--") ? [...acc, [a.slice(2), all[i + 1]]] : acc), [])
+  process.argv
+    .slice(2)
+    .reduce((acc, a, i, all) => (a.startsWith("--") ? [...acc, [a.slice(2), all[i + 1]]] : acc), [])
 );
 const BASE = args.base ?? "http://localhost:3000/api";
 const WEB = args.web;
@@ -49,7 +51,10 @@ async function register(name) {
 }
 
 async function main() {
-  await waitFor(async () => (await call("GET", "/health").catch(() => ({}))).status === 200, "API health 200");
+  await waitFor(
+    async () => (await call("GET", "/health").catch(() => ({}))).status === 200,
+    "API health 200"
+  );
   check(true, "API healthy (MongoDB + Redis)");
   if (WEB) {
     const html = await fetch(WEB).then((r) => r.text());
@@ -68,16 +73,25 @@ async function main() {
 
   const created = await call("POST", "/posts", {
     token: alice,
-    body: { caption: "Spent the afternoon sketching strangers in the park", mediaUrl: "https://example.com/a.jpg" },
+    body: {
+      caption: "Spent the afternoon sketching strangers in the park",
+      mediaUrl: "https://example.com/a.jpg",
+    },
   });
-  check(created.status === 201 && created.body.data.processingStatus === "pending", "publish returns 201, pending");
+  check(
+    created.status === 201 && created.body.data.processingStatus === "pending",
+    "publish returns 201, pending"
+  );
   const postId = created.body.data.id;
 
   const done = await waitFor(async () => {
     const p = (await call("GET", `/posts/${postId}`, { token: alice })).body?.data;
     return p?.processingStatus === "completed" ? p : null;
   }, "analysis to complete");
-  check(done.searchIndexed === true && done.moderationStatus === "approved", "analysis completed and indexed");
+  check(
+    done.searchIndexed === true && done.moderationStatus === "approved",
+    "analysis completed and indexed"
+  );
 
   // No word in common with the caption: only the embedding can find it
   const search = await call("GET", "/search?q=drawing%20people", { token: bob });
@@ -90,13 +104,26 @@ async function main() {
     body: { caption: `Free crypto for everyone ${marker}`, mediaUrl: "https://example.com/b.jpg" },
   });
   const spamId = spam.body.data.id;
-  await waitFor(async () => (await call("GET", `/posts/${spamId}`, { token: alice })).body?.data?.processingStatus === "completed", "spam analysis");
-  check((await call("GET", `/posts/${spamId}`, { token: alice })).body.data.moderationStatus === "flagged", "spam caption flagged");
-  check((await call("GET", `/posts/${spamId}`, { token: bob })).status === 404, "flagged post hidden from other users");
+  await waitFor(
+    async () =>
+      (await call("GET", `/posts/${spamId}`, { token: alice })).body?.data?.processingStatus === "completed",
+    "spam analysis"
+  );
+  check(
+    (await call("GET", `/posts/${spamId}`, { token: alice })).body.data.moderationStatus === "flagged",
+    "spam caption flagged"
+  );
+  check(
+    (await call("GET", `/posts/${spamId}`, { token: bob })).status === 404,
+    "flagged post hidden from other users"
+  );
 
   const liked = await call("POST", `/posts/${postId}/like`, { token: bob });
   check(liked.body.data.likesCount === 1, "like counted");
-  check((await call("DELETE", `/posts/${postId}`, { token: bob })).status === 403, "non-author cannot delete");
+  check(
+    (await call("DELETE", `/posts/${postId}`, { token: bob })).status === 403,
+    "non-author cannot delete"
+  );
   check((await call("DELETE", `/posts/${postId}`, { token: alice })).status === 200, "author deletes post");
   const after = await call("GET", "/search?q=drawing%20people", { token: bob });
   check(!after.body.data.results.some((p) => p.id === postId), "deleted post no longer in search");

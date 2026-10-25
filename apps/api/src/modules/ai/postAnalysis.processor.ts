@@ -74,9 +74,9 @@ export async function processPostAnalysis(
     // Deleted while the AI service was working: its delete-vector call may have run before
     // our upsert, so remove the vector we just created rather than leave an orphan.
     if (result.indexed) {
-      await deps.deletePostVector(job.postId).catch((err) =>
-        logger.warn({ err, postId: job.postId }, "Failed to remove vector of deleted post")
-      );
+      await deps
+        .deletePostVector(job.postId)
+        .catch((err) => logger.warn({ err, postId: job.postId }, "Failed to remove vector of deleted post"));
     }
     return "deleted_during_analysis";
   }

@@ -65,8 +65,8 @@ export const AboutCard: React.FC = () => (
       <span>How Novak works</span>
     </div>
     <p>
-      Each caption is embedded with a small text model and stored in Qdrant, so Explore can match it by meaning
-      as well as by keywords. Images themselves aren't analysed.
+      Each caption is embedded with a small text model and stored in Qdrant, so Explore can match it by
+      meaning as well as by keywords. Images themselves aren't analysed.
     </p>
   </div>
 );

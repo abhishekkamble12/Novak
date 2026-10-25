@@ -104,14 +104,21 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClos
               Create new post
             </h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-white" aria-label="Close">
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-white"
+            aria-label="Close"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div className="space-y-1.5">
-            <label htmlFor="media-url" className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label
+              htmlFor="media-url"
+              className="text-xs font-semibold uppercase tracking-wider text-slate-300"
+            >
               Image
             </label>
             <div className="flex gap-2">
@@ -128,7 +135,11 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClos
               />
               {uploadsEnabled && (
                 <label className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-xl bg-surface border border-surface-border text-slate-300 hover:text-white hover:border-brand-500/50 cursor-pointer">
-                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
+                  {uploading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <ImagePlus className="w-4 h-4" />
+                  )}
                   Upload
                   <input
                     type="file"
@@ -141,7 +152,9 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClos
               )}
             </div>
             <p className="text-[11px] text-slate-500">
-              {uploadsEnabled ? "Paste a public https image URL or upload a file." : "Paste a public https image URL."}
+              {uploadsEnabled
+                ? "Paste a public https image URL or upload a file."
+                : "Paste a public https image URL."}
             </p>
           </div>
 
@@ -167,7 +180,10 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClos
           )}
 
           <div className="space-y-1.5">
-            <label htmlFor="caption" className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label
+              htmlFor="caption"
+              className="text-xs font-semibold uppercase tracking-wider text-slate-300"
+            >
               Caption
             </label>
             <textarea
@@ -214,7 +230,11 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClos
               disabled={!canSubmit}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-brand text-white font-semibold text-sm shadow-neon hover:opacity-95 disabled:opacity-50"
             >
-              {create.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              {create.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
               {create.isPending ? "Publishing…" : "Publish"}
             </button>
           </div>

@@ -45,14 +45,19 @@ describe("ExplorePage search states", () => {
 
   it("shows the server's error message with a retry", async () => {
     const response = { status: 500, data: { error: { message: "Search is down" } } } as AxiosResponse;
-    vi.spyOn(searchApi, "search").mockRejectedValue(new AxiosError("boom", "500", undefined, undefined, response));
+    vi.spyOn(searchApi, "search").mockRejectedValue(
+      new AxiosError("boom", "500", undefined, undefined, response)
+    );
     explore("dog");
     expect(await screen.findByText("Search is down")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Try again" })).toBeTruthy();
   });
 
   it("shows the latest posts when there is no query", async () => {
-    vi.spyOn(postsApi, "feed").mockResolvedValue({ items: [makePost({ caption: "latest one" })], nextCursor: null });
+    vi.spyOn(postsApi, "feed").mockResolvedValue({
+      items: [makePost({ caption: "latest one" })],
+      nextCursor: null,
+    });
     vi.spyOn(postsApi, "trendingTags").mockResolvedValue([]);
     vi.spyOn(usersApi, "suggestions").mockResolvedValue([]);
     renderWithProviders(<ExplorePage />, { route: "/explore" });

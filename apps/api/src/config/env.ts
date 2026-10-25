@@ -11,9 +11,7 @@ const DEV_ACCESS_SECRET = "development-access-secret-32-chars-long";
 const DEV_REFRESH_SECRET = "development-refresh-secret-32-chars-long";
 const DEV_INTERNAL_SECRET = "internal-ai-service-shared-secret-key";
 
-const booleanString = z
-  .enum(["true", "false", "1", "0"])
-  .transform((v) => v === "true" || v === "1");
+const booleanString = z.enum(["true", "false", "1", "0"]).transform((v) => v === "true" || v === "1");
 
 const envSchema = z
   .object({
@@ -59,7 +57,11 @@ const envSchema = z
     const requireSecret = (key: keyof typeof data, devDefault: string) => {
       const value = data[key] as string;
       // Also rejects the placeholders shipped in .env.example
-      if (value === devDefault || value.length < 32 || /change-me|development|internal-ai-service/i.test(value)) {
+      if (
+        value === devDefault ||
+        value.length < 32 ||
+        /change-me|development|internal-ai-service/i.test(value)
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: `${key} must be set to a random value of at least 32 characters in production`,

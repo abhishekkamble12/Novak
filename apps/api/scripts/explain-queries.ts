@@ -18,7 +18,12 @@ function describe(stage: Stage): string {
 async function explain(name: string, query: mongoose.Query<unknown, unknown>) {
   const plan = (await query.explain("executionStats")) as unknown as {
     queryPlanner: { winningPlan: Stage & { queryPlan?: Stage } };
-    executionStats: { nReturned: number; totalKeysExamined: number; totalDocsExamined: number; executionTimeMillis: number };
+    executionStats: {
+      nReturned: number;
+      totalKeysExamined: number;
+      totalDocsExamined: number;
+      executionTimeMillis: number;
+    };
   };
   const winning = plan.queryPlanner.winningPlan.queryPlan ?? plan.queryPlanner.winningPlan;
   const s = plan.executionStats;
@@ -42,11 +47,16 @@ async function main() {
   await explain("profile grid", page({ $and: [{ author: someAuthor }, visibilityFilter()] }));
   await explain(
     "reconciler scan",
-    PostModel.find({ processingStatus: "pending", createdAt: { $lt: new Date() } }).sort({ createdAt: 1 }).limit(100)
+    PostModel.find({ processingStatus: "pending", createdAt: { $lt: new Date() } })
+      .sort({ createdAt: 1 })
+      .limit(100)
   );
   await explain(
     "keyword search",
-    PostModel.find({ $and: [{ $text: { $search: "coffee" } }, visibilityFilter()] }, { score: { $meta: "textScore" } })
+    PostModel.find(
+      { $and: [{ $text: { $search: "coffee" } }, visibilityFilter()] },
+      { score: { $meta: "textScore" } }
+    )
       .sort({ score: { $meta: "textScore" } })
       .limit(24)
   );

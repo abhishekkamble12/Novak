@@ -25,7 +25,13 @@ export function compactNumber(n: number): string {
 export function parseTags(input: string): string[] {
   const tags = input
     .split(/[\s,]+/)
-    .map((t) => t.replace(/^#/, "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 40))
+    .map((t) =>
+      t
+        .replace(/^#/, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, "")
+        .slice(0, 40)
+    )
     .filter(Boolean);
   return [...new Set(tags)].slice(0, 20);
 }

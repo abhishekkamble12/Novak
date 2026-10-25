@@ -42,8 +42,9 @@ router.post(
 
     // The post is durable in Mongo before this runs. If Redis is down the enqueue fails
     // fast, the post stays "pending", and the reconciler enqueues it once Redis is back.
-    await enqueuePostAnalysis(analyzeJobFor(post, { id: user.userId, username: user.username })).catch((err) =>
-      logger.warn({ err: (err as Error).message, postId: post.id }, "Enqueue failed; reconciler will retry")
+    await enqueuePostAnalysis(analyzeJobFor(post, { id: user.userId, username: user.username })).catch(
+      (err) =>
+        logger.warn({ err: (err as Error).message, postId: post.id }, "Enqueue failed; reconciler will retry")
     );
 
     sendSuccess(res, await posts.getPost(post.id, user.userId), 201);
@@ -82,7 +83,10 @@ router.post(
     await enqueuePostAnalysis(analyzeJobFor(post, { id: user.userId, username: user.username }), {
       replace: true,
     }).catch((err) =>
-      logger.warn({ err: (err as Error).message, postId: req.params.id }, "Enqueue failed; reconciler will retry")
+      logger.warn(
+        { err: (err as Error).message, postId: req.params.id },
+        "Enqueue failed; reconciler will retry"
+      )
     );
     sendSuccess(res, await posts.getPost(req.params.id, user.userId), 202);
   })

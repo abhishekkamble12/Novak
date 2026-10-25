@@ -40,7 +40,9 @@ router.get("/health", async (_req: Request, res: Response) => {
     redisStatus === "healthy" ? getQueueCounts().catch(() => null) : null,
     // The createdAt range lets the planner use the small partial "pending_processing" index
     mongoStatus === "healthy"
-      ? PostModel.countDocuments({ processingStatus: "pending", createdAt: { $gte: new Date(0) } }).catch(() => null)
+      ? PostModel.countDocuments({ processingStatus: "pending", createdAt: { $gte: new Date(0) } }).catch(
+          () => null
+        )
       : null,
   ]);
 

@@ -9,7 +9,10 @@ describe("realtime cache sync", () => {
   it("applies a processed event to every cached copy of the post", () => {
     const qc = new QueryClient();
     const pending = makePost({ processingStatus: "pending", searchIndexed: false });
-    qc.setQueryData(postKeys.feed, { pages: [{ items: [pending], nextCursor: null }], pageParams: [undefined] });
+    qc.setQueryData(postKeys.feed, {
+      pages: [{ items: [pending], nextCursor: null }],
+      pageParams: [undefined],
+    });
     qc.setQueryData(postKeys.detail("p1"), pending);
 
     applyProcessedEvent(qc, {
@@ -27,7 +30,10 @@ describe("realtime cache sync", () => {
 
   it("only polls for the signed-in user's own pending posts", () => {
     const qc = new QueryClient();
-    qc.setQueryData(postKeys.detail("p1"), makePost({ authorId: "someone-else", processingStatus: "pending" }));
+    qc.setQueryData(
+      postKeys.detail("p1"),
+      makePost({ authorId: "someone-else", processingStatus: "pending" })
+    );
     expect(hasPendingOwnPost(qc, "u1")).toBe(false);
     qc.setQueryData(postKeys.search("x"), {
       results: [makePost({ processingStatus: "pending" })],

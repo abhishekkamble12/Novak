@@ -4,14 +4,7 @@ import { AppError } from "../utils/errors.js";
 import { logger } from "../config/logger.js";
 import { env } from "../config/env.js";
 
-function send(
-  req: Request,
-  res: Response,
-  status: number,
-  code: string,
-  message: string,
-  details?: unknown
-) {
+function send(req: Request, res: Response, status: number, code: string, message: string, details?: unknown) {
   return res.status(status).json({
     success: false,
     error: { code, message, details },

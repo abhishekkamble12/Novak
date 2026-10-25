@@ -110,7 +110,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCreateModal }) => {
         <NavLink to="/explore" className={mobileClass} aria-label="Explore">
           <Compass className="w-6 h-6" />
         </NavLink>
-        <button onClick={handleCreate} className="p-3 rounded-full bg-gradient-brand text-white shadow-neon" aria-label="Create post">
+        <button
+          onClick={handleCreate}
+          className="p-3 rounded-full bg-gradient-brand text-white shadow-neon"
+          aria-label="Create post"
+        >
           <PlusSquare className="w-6 h-6" />
         </button>
         {user ? (

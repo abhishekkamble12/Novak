@@ -9,10 +9,17 @@
  * captions the account has already posted.
  */
 const args = Object.fromEntries(
-  process.argv.slice(2).reduce((acc, a, i, all) => (a.startsWith("--") ? [...acc, [a.slice(2), all[i + 1]]] : acc), [])
+  process.argv
+    .slice(2)
+    .reduce((acc, a, i, all) => (a.startsWith("--") ? [...acc, [a.slice(2), all[i + 1]]] : acc), [])
 );
 const BASE = args.base ?? "http://localhost/api";
-const USER = { username: "novak_demo", email: "novak_demo@example.com", password: "DemoPassw0rd", name: "Novak Demo" };
+const USER = {
+  username: "novak_demo",
+  email: "novak_demo@example.com",
+  password: "DemoPassw0rd",
+  name: "Novak Demo",
+};
 
 const POSTS = [
   [1025, "Wrapped my pug in a blanket for our forest walk, he still looks unimpressed", ["pug"]],
@@ -39,9 +46,12 @@ async function call(method, path, { token, body } = {}) {
 }
 
 async function main() {
-  let auth = await call("POST", "/auth/login", { body: { emailOrUsername: USER.username, password: USER.password } });
+  let auth = await call("POST", "/auth/login", {
+    body: { emailOrUsername: USER.username, password: USER.password },
+  });
   if (auth.status === 401) auth = await call("POST", "/auth/register", { body: USER });
-  if (!auth.body?.success) throw new Error(`Could not sign in as ${USER.username}: ${JSON.stringify(auth.body?.error)}`);
+  if (!auth.body?.success)
+    throw new Error(`Could not sign in as ${USER.username}: ${JSON.stringify(auth.body?.error)}`);
   const token = auth.body.data.accessToken;
 
   const existing = await call("GET", `/users/${USER.username}/posts?limit=50`, { token });
@@ -55,11 +65,14 @@ async function main() {
       token,
       body: { caption, tags, mediaUrl: `https://picsum.photos/id/${id}/1080/1080` },
     });
-    if (res.status !== 201) throw new Error(`Post failed (${res.status}): ${JSON.stringify(res.body?.error)}`);
+    if (res.status !== 201)
+      throw new Error(`Post failed (${res.status}): ${JSON.stringify(res.body?.error)}`);
     created++;
   }
   console.log(`Created ${created} posts (${POSTS.length - created} already existed) as ${USER.username}.`);
-  console.log("They become searchable once analysis finishes (a few seconds). Try Explore: 'ocean animals' or 'morning coffee'.");
+  console.log(
+    "They become searchable once analysis finishes (a few seconds). Try Explore: 'ocean animals' or 'morning coffee'."
+  );
 }
 
 main().catch((err) => {

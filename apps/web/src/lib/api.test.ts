@@ -13,7 +13,7 @@ const respond =
 
 describe("api client", () => {
   it("turns a misrouted /api (static host answering index.html) into a clear error", async () => {
-    api.defaults.adapter = respond("<!doctype html><div id=\"root\"></div>");
+    api.defaults.adapter = respond('<!doctype html><div id="root"></div>');
     const err = await postsApi.feed().catch((e) => e);
     expect(errorMessage(err)).toBe(NOT_API_MESSAGE);
   });

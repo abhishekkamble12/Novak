@@ -65,20 +65,20 @@ api.interceptors.response.use(
     return res;
   },
   async (error: AxiosError) => {
-  const config = error.config as RetriableConfig | undefined;
-  const isAuthCall = config?.url?.startsWith("/auth/");
-  if (
-    error.response?.status === 401 &&
-    config &&
-    !config._retried &&
-    !isAuthCall &&
-    useAuthStore.getState().accessToken
-  ) {
-    config._retried = true;
-    const session = await refreshSession();
-    if (session) return api(config);
-  }
-  return Promise.reject(error);
+    const config = error.config as RetriableConfig | undefined;
+    const isAuthCall = config?.url?.startsWith("/auth/");
+    if (
+      error.response?.status === 401 &&
+      config &&
+      !config._retried &&
+      !isAuthCall &&
+      useAuthStore.getState().accessToken
+    ) {
+      config._retried = true;
+      const session = await refreshSession();
+      if (session) return api(config);
+    }
+    return Promise.reject(error);
   }
 );
 
@@ -105,7 +105,7 @@ export interface Page<T> {
 const data = <T>(res: { data: ApiSuccess<T> }) => res.data.data;
 const page = <T>(res: { data: ApiSuccess<T[]> }): Page<T> => ({
   items: res.data.data,
-  nextCursor: res.data.meta?.hasMore ? res.data.meta.cursor ?? null : null,
+  nextCursor: res.data.meta?.hasMore ? (res.data.meta.cursor ?? null) : null,
 });
 
 export const authApi = {
@@ -133,9 +133,7 @@ export const postsApi = {
 export const usersApi = {
   get: (username: string) => api.get<ApiSuccess<UserSummary>>(`/users/${username}`).then(data),
   posts: (username: string, cursor?: string) =>
-    api
-      .get<ApiSuccess<PostDto[]>>(`/users/${username}/posts`, { params: { cursor, limit: 12 } })
-      .then(page),
+    api.get<ApiSuccess<PostDto[]>>(`/users/${username}/posts`, { params: { cursor, limit: 12 } }).then(page),
   suggestions: () => api.get<ApiSuccess<UserSummary[]>>("/users/suggestions").then(data),
   updateMe: (input: UpdateProfileInput) => api.patch<ApiSuccess<UserSummary>>("/users/me", input).then(data),
 };

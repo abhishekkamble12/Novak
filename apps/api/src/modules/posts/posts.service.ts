@@ -101,10 +101,7 @@ async function paginate(
     query.$and = [
       ...(query.$and ?? []),
       {
-        $or: [
-          { createdAt: { $lt: at } },
-          { createdAt: at, _id: { $lt: new Types.ObjectId(decoded.id) } },
-        ],
+        $or: [{ createdAt: { $lt: at } }, { createdAt: at, _id: { $lt: new Types.ObjectId(decoded.id) } }],
       },
     ];
   }
@@ -122,9 +119,7 @@ async function paginate(
   return {
     items: await toPostDtos(page, viewerId),
     nextCursor:
-      hasMore && last
-        ? encodeCursor({ id: last._id.toString(), timestamp: last.createdAt.getTime() })
-        : null,
+      hasMore && last ? encodeCursor({ id: last._id.toString(), timestamp: last.createdAt.getTime() }) : null,
   };
 }
 
@@ -132,20 +127,10 @@ export function getFeed(limit: number, cursor?: string, viewerId?: string) {
   return paginate(visibilityFilter(viewerId), limit, cursor, viewerId);
 }
 
-export async function getUserPosts(
-  username: string,
-  limit: number,
-  cursor?: string,
-  viewerId?: string
-) {
+export async function getUserPosts(username: string, limit: number, cursor?: string, viewerId?: string) {
   const author = await UserModel.findOne({ username: username.toLowerCase() }).select("_id").lean();
   if (!author) throw new NotFoundError("User not found");
-  return paginate(
-    { $and: [{ author: author._id }, visibilityFilter(viewerId)] },
-    limit,
-    cursor,
-    viewerId
-  );
+  return paginate({ $and: [{ author: author._id }, visibilityFilter(viewerId)] }, limit, cursor, viewerId);
 }
 
 export async function getPostsByIds(ids: string[], viewerId?: string): Promise<PostDto[]> {

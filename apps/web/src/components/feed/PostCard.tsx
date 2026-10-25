@@ -55,7 +55,10 @@ export const StatusBadge: React.FC<{ post: PostDto; isOwner: boolean }> = ({ pos
   }
   if (post.moderationStatus === "flagged") {
     return (
-      <span title={post.moderationReason} className={`${badge} text-amber-300 bg-amber-500/10 border-amber-500/20`}>
+      <span
+        title={post.moderationReason}
+        className={`${badge} text-amber-300 bg-amber-500/10 border-amber-500/20`}
+      >
         <ShieldAlert className="w-3 h-3" /> Held for review · only you can see this
       </span>
     );
@@ -105,7 +108,8 @@ export const PostCard: React.FC<{ post: PostDto }> = ({ post }) => {
       }));
       return previous;
     },
-    onSuccess: (res) => updatePost(qc, post.id, (p) => ({ ...p, hasLiked: res.liked, likesCount: res.likesCount })),
+    onSuccess: (res) =>
+      updatePost(qc, post.id, (p) => ({ ...p, hasLiked: res.liked, likesCount: res.likesCount })),
     onError: (err, _liked, previous) => {
       if (previous) updatePost(qc, post.id, (p) => ({ ...p, ...previous }));
       flash(errorMessage(err));
@@ -177,7 +181,10 @@ export const PostCard: React.FC<{ post: PostDto }> = ({ post }) => {
           </button>
           {menuOpen && (
             <div className="absolute right-0 mt-1 w-44 glass-panel rounded-xl py-1 z-20 shadow-glass text-sm">
-              <button onClick={copyLink} className="w-full flex items-center gap-2 px-3 py-2 hover:bg-surface">
+              <button
+                onClick={copyLink}
+                className="w-full flex items-center gap-2 px-3 py-2 hover:bg-surface"
+              >
                 <Link2 className="w-4 h-4" /> Copy link
               </button>
               {isOwner && (
@@ -196,7 +203,10 @@ export const PostCard: React.FC<{ post: PostDto }> = ({ post }) => {
         </div>
       </header>
 
-      <div className="relative bg-black select-none overflow-hidden break-words" onDoubleClick={handleDoubleClick}>
+      <div
+        className="relative bg-black select-none overflow-hidden break-words"
+        onDoubleClick={handleDoubleClick}
+      >
         <img
           src={post.mediaUrl}
           alt={post.caption || `Post by ${post.authorUsername}`}

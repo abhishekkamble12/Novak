@@ -4,13 +4,7 @@ import { env } from "../../config/env.js";
 import { ConflictError, UnauthorizedError } from "../../utils/errors.js";
 import { UserDocument, UserModel, toUserSummary } from "../users/user.model.js";
 import { SessionModel } from "./session.model.js";
-import {
-  hashJti,
-  newJti,
-  signAccessToken,
-  signRefreshToken,
-  verifyRefreshToken,
-} from "./tokens.js";
+import { hashJti, newJti, signAccessToken, signRefreshToken, verifyRefreshToken } from "./tokens.js";
 
 export interface IssuedTokens {
   result: AuthResult;

@@ -25,7 +25,10 @@ export const Avatar: React.FC<AvatarProps> = ({ src, name, size = "md", classNam
   }
   return (
     <div
-      className={cn(base, "bg-gradient-brand flex items-center justify-center font-heading font-bold text-white")}
+      className={cn(
+        base,
+        "bg-gradient-brand flex items-center justify-center font-heading font-bold text-white"
+      )}
       aria-label={name}
     >
       {name.trim().charAt(0).toUpperCase() || "?"}

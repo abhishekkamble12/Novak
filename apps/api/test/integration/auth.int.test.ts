@@ -18,15 +18,22 @@ describe("auth", () => {
       .send({ username: user.username, email: "other@test.dev", password: "Passw0rd!", name: "x" });
     expect(dup.status).toBe(409);
 
-    await request(app).post("/api/auth/login").send({ emailOrUsername: user.username, password: "Passw0rd!" }).expect(200);
+    await request(app)
+      .post("/api/auth/login")
+      .send({ emailOrUsername: user.username, password: "Passw0rd!" })
+      .expect(200);
     await request(app)
       .post("/api/auth/login")
       .send({ emailOrUsername: `${user.username}@test.dev`, password: "Passw0rd!" })
       .expect(200);
-    const bad = await request(app).post("/api/auth/login").send({ emailOrUsername: user.username, password: "nope" });
+    const bad = await request(app)
+      .post("/api/auth/login")
+      .send({ emailOrUsername: user.username, password: "nope" });
     expect(bad.status).toBe(401);
     // Same message for unknown users: no account enumeration
-    const unknown = await request(app).post("/api/auth/login").send({ emailOrUsername: "ghost_user", password: "nope" });
+    const unknown = await request(app)
+      .post("/api/auth/login")
+      .send({ emailOrUsername: "ghost_user", password: "nope" });
     expect(unknown.body.error.message).toBe(bad.body.error.message);
   });
 

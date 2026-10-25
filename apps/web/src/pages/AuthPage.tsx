@@ -8,12 +8,14 @@ import { useAuthStore } from "../store/useAuthStore";
 const inputClass =
   "w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface border border-surface-border text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-500";
 
-const Field: React.FC<{
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  hint?: string;
-} & React.InputHTMLAttributes<HTMLInputElement>> = ({ id, label, icon, hint, ...input }) => (
+const Field: React.FC<
+  {
+    id: string;
+    label: string;
+    icon: React.ReactNode;
+    hint?: string;
+  } & React.InputHTMLAttributes<HTMLInputElement>
+> = ({ id, label, icon, hint, ...input }) => (
   <div className="space-y-1">
     <label htmlFor={id} className="text-[11px] font-semibold uppercase tracking-wider text-slate-300">
       {label}
@@ -89,7 +91,10 @@ export const AuthPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 p-1 rounded-xl bg-surface border border-surface-border mb-6" role="tablist">
+        <div
+          className="grid grid-cols-2 p-1 rounded-xl bg-surface border border-surface-border mb-6"
+          role="tablist"
+        >
           {[
             ["Sign In", true],
             ["Create Account", false],
@@ -164,7 +169,10 @@ export const AuthPage: React.FC = () => {
           />
 
           {error && (
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300" role="alert">
+            <div
+              className="flex items-start gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300"
+              role="alert"
+            >
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>

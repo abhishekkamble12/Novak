@@ -65,7 +65,11 @@ describe("processPostAnalysis (one delivery)", () => {
       aiTags: ["beach"],
       processingAttempts: 1,
     });
-    expect(d.events[0]).toMatchObject({ postId: job.postId, processingStatus: "completed", searchIndexed: true });
+    expect(d.events[0]).toMatchObject({
+      postId: job.postId,
+      processingStatus: "completed",
+      searchIndexed: true,
+    });
   });
 
   it("records a flagged caption with its reason", async () => {
@@ -73,12 +77,22 @@ describe("processPostAnalysis (one delivery)", () => {
     const reason = "Held for review: caption matched spam rules";
     const d = deps(async () =>
       ok(job.postId, {
-        moderation: { status: "flagged", method: "keyword_rules", labels: ["spam"], matchedTerms: ["free crypto"], reason },
+        moderation: {
+          status: "flagged",
+          method: "keyword_rules",
+          labels: ["spam"],
+          matchedTerms: ["free crypto"],
+          reason,
+        },
       })
     );
     await processPostAnalysis(job, attempt1, d);
     const doc = await PostModel.findById(job.postId).lean();
-    expect(doc).toMatchObject({ moderationStatus: "flagged", moderationReason: reason, processingStatus: "completed" });
+    expect(doc).toMatchObject({
+      moderationStatus: "flagged",
+      moderationReason: reason,
+      processingStatus: "completed",
+    });
   });
 
   it("on a retryable error keeps the post pending, records the attempt and rethrows", async () => {
@@ -88,7 +102,11 @@ describe("processPostAnalysis (one delivery)", () => {
     });
     await expect(processPostAnalysis(job, { attempt: 2, maxAttempts: 6 }, d)).rejects.toThrow("503");
     const doc = await PostModel.findById(job.postId).lean();
-    expect(doc).toMatchObject({ processingStatus: "pending", moderationStatus: "pending", processingAttempts: 2 });
+    expect(doc).toMatchObject({
+      processingStatus: "pending",
+      moderationStatus: "pending",
+      processingAttempts: 2,
+    });
     expect(doc?.processingError).toContain("503");
     expect(d.emit).not.toHaveBeenCalled();
   });
@@ -124,7 +142,11 @@ describe("processPostAnalysis (one delivery)", () => {
     const d = deps(async () => ok(job.postId));
     expect(await markProcessingFailed(job.postId, "retries exhausted", d.emit)).toBe(true);
     const doc = await PostModel.findById(job.postId).lean();
-    expect(doc).toMatchObject({ processingStatus: "failed", moderationStatus: "pending", processingError: "retries exhausted" });
+    expect(doc).toMatchObject({
+      processingStatus: "failed",
+      moderationStatus: "pending",
+      processingError: "retries exhausted",
+    });
     expect(d.events[0]).toMatchObject({ processingStatus: "failed" });
     // Only pending posts can fail
     expect(await markProcessingFailed(job.postId, "again", d.emit)).toBe(false);

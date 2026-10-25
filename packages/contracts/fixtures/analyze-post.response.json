@@ -1,19 +1,12 @@
 {
   "postId": "65f000000000000000000001",
-  "tags": [
-    "sunset",
-    "beach"
-  ],
+  "tags": ["sunset", "beach"],
   "indexed": true,
   "moderation": {
     "status": "flagged",
     "method": "keyword_rules",
-    "labels": [
-      "spam"
-    ],
-    "matchedTerms": [
-      "free crypto"
-    ],
+    "labels": ["spam"],
+    "matchedTerms": ["free crypto"],
     "reason": "Held for review: caption matched spam rules"
   }
 }

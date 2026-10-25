@@ -69,7 +69,13 @@ export async function enqueuePostAnalysis(
 }
 
 export function analyzeJobFor(
-  post: { _id: { toString(): string }; caption?: string | null; mediaUrl: string; tags?: string[]; createdAt: Date },
+  post: {
+    _id: { toString(): string };
+    caption?: string | null;
+    mediaUrl: string;
+    tags?: string[];
+    createdAt: Date;
+  },
   author: { id: string; username: string }
 ): PostAnalyzeJob {
   return {
@@ -90,7 +96,10 @@ export async function handleJob(job: Job<PostAnalyzeJob>, deps: ProcessorDeps = 
       { attempt: job.attemptsMade + 1, maxAttempts: job.opts.attempts ?? 1 },
       deps
     );
-    logger.info({ postId: job.data.postId, outcome, attempt: job.attemptsMade + 1 }, "Post analysis finished");
+    logger.info(
+      { postId: job.data.postId, outcome, attempt: job.attemptsMade + 1 },
+      "Post analysis finished"
+    );
     return outcome;
   } catch (err) {
     // A 4xx means the request itself is wrong (contract mismatch, bad payload): retrying
@@ -109,7 +118,9 @@ export async function handleFailed(
   emit: ProcessorDeps["emit"] = emitPostProcessed
 ) {
   if (!job) return;
-  const terminal = err instanceof UnrecoverableError || err.name === "UnrecoverableError" ||
+  const terminal =
+    err instanceof UnrecoverableError ||
+    err.name === "UnrecoverableError" ||
     job.attemptsMade >= (job.opts.attempts ?? 1);
   logger.warn(
     { postId: job.data.postId, attempt: job.attemptsMade, terminal, err: err.message },
@@ -167,7 +178,8 @@ export async function reconcilePendingPosts({
     const state = job ? await job.getState() : "missing";
 
     if (state === "failed") {
-      if (await markProcessingFailed(postId, job?.failedReason || "Analysis failed", emit)) report.markedFailed++;
+      if (await markProcessingFailed(postId, job?.failedReason || "Analysis failed", emit))
+        report.markedFailed++;
     } else if (state === "missing" || state === "unknown" || state === "completed") {
       await enqueuePostAnalysis(
         analyzeJobFor(post, { id: post.author._id.toString(), username: post.author.username }),

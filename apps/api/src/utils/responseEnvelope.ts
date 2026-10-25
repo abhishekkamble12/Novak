@@ -8,12 +8,7 @@ export interface SuccessMeta {
   total?: number;
 }
 
-export function sendSuccess<T>(
-  res: Response,
-  data: T,
-  statusCode: number = 200,
-  meta?: SuccessMeta
-) {
+export function sendSuccess<T>(res: Response, data: T, statusCode: number = 200, meta?: SuccessMeta) {
   return res.status(statusCode).json({
     success: true,
     data,

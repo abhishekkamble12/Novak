@@ -18,7 +18,9 @@ import os from "node:os";
 import path from "node:path";
 
 const args = Object.fromEntries(
-  process.argv.slice(2).reduce((acc, a, i, all) => (a.startsWith("--") ? [...acc, [a.slice(2), all[i + 1]]] : acc), [])
+  process.argv
+    .slice(2)
+    .reduce((acc, a, i, all) => (a.startsWith("--") ? [...acc, [a.slice(2), all[i + 1]]] : acc), [])
 );
 const BASE = args.base ?? "http://localhost:3000/api";
 const POSTS = Number(args.posts ?? 300);
@@ -27,15 +29,31 @@ const REQUESTS = Number(args.requests ?? 500);
 const OUT = args.out;
 
 const CAPTIONS = [
-  "Golden hour on the beach, waves rolling in", "Oat milk flat white and a quiet corner",
-  "Summit reached after six hours of switchbacks", "Neon signs reflecting in puddles downtown",
-  "New deadlift PR at the gym today", "Rainy day, blanket, and a stack of library books",
-  "Homemade ramen, broth simmered for twelve hours", "My monstera finally unfurled a new leaf",
-  "Fresh powder, first ski run of the season", "Sixty miles on the bike, legs are toast",
-  "Telescope pointed at Saturn tonight", "Chocolate lava cake for dessert",
+  "Golden hour on the beach, waves rolling in",
+  "Oat milk flat white and a quiet corner",
+  "Summit reached after six hours of switchbacks",
+  "Neon signs reflecting in puddles downtown",
+  "New deadlift PR at the gym today",
+  "Rainy day, blanket, and a stack of library books",
+  "Homemade ramen, broth simmered for twelve hours",
+  "My monstera finally unfurled a new leaf",
+  "Fresh powder, first ski run of the season",
+  "Sixty miles on the bike, legs are toast",
+  "Telescope pointed at Saturn tonight",
+  "Chocolate lava cake for dessert",
 ];
-const QUERIES = ["caffeine fix", "ocean waves at dusk", "climbing a mountain", "weightlifting", "houseplants",
-  "noodle soup", "stargazing", "cycling", "winter sports", "reading a novel"];
+const QUERIES = [
+  "caffeine fix",
+  "ocean waves at dusk",
+  "climbing a mountain",
+  "weightlifting",
+  "houseplants",
+  "noodle soup",
+  "stargazing",
+  "cycling",
+  "winter sports",
+  "reading a novel",
+];
 
 async function call(method, url, { token, body } = {}) {
   const started = performance.now();
@@ -81,7 +99,8 @@ async function load(name, total, concurrency, makeRequest) {
     throughput_rps: round((total / wallMs) * 1000),
     error_rate: round(errors.length / total, 4),
     error_statuses: [...new Set(errors.map((e) => e.status))],
-    api_cpu_percent_of_one_core: live0 && live1 ? round(((live1.cpuMicros - live0.cpuMicros) / 1000 / wallMs) * 100) : null,
+    api_cpu_percent_of_one_core:
+      live0 && live1 ? round(((live1.cpuMicros - live0.cpuMicros) / 1000 / wallMs) * 100) : null,
     api_rss_mb_after: live1 ? round(live1.rssBytes / 1048576) : null,
   };
   console.log(
@@ -115,7 +134,10 @@ async function main() {
   const created = await load("POST /posts", POSTS, CONCURRENCY, (i) =>
     call("POST", "/posts", {
       token: users[i % users.length],
-      body: { caption: `${CAPTIONS[i % CAPTIONS.length]} #${run}`, mediaUrl: "https://example.com/bench.jpg" },
+      body: {
+        caption: `${CAPTIONS[i % CAPTIONS.length]} #${run}`,
+        mediaUrl: "https://example.com/bench.jpg",
+      },
     })
   );
   phases.push(created.result);
@@ -133,17 +155,27 @@ async function main() {
     name: "analysis drain",
     posts: POSTS,
     seconds_after_last_create: round(drainMs / 1000),
-    posts_per_second: pending === 0 ? round(POSTS / ((created.result.requests / created.result.throughput_rps) + drainMs / 1000)) : null,
+    posts_per_second:
+      pending === 0
+        ? round(POSTS / (created.result.requests / created.result.throughput_rps + drainMs / 1000))
+        : null,
     completed: pending === 0,
   };
-  console.log(`analysis drain               ${drain.completed ? "done" : "NOT DONE"} ${drain.seconds_after_last_create}s after the last create`);
+  console.log(
+    `analysis drain               ${drain.completed ? "done" : "NOT DONE"} ${drain.seconds_after_last_create}s after the last create`
+  );
   phases.push(drain);
 
-  phases.push((await load("GET /posts/feed (anon)", REQUESTS, CONCURRENCY, () => call("GET", "/posts/feed?limit=20"))).result);
   phases.push(
-    (await load("GET /posts/feed (signed in)", REQUESTS, CONCURRENCY, (i) =>
-      call("GET", "/posts/feed?limit=20", { token: users[i % users.length] })
-    )).result
+    (await load("GET /posts/feed (anon)", REQUESTS, CONCURRENCY, () => call("GET", "/posts/feed?limit=20")))
+      .result
+  );
+  phases.push(
+    (
+      await load("GET /posts/feed (signed in)", REQUESTS, CONCURRENCY, (i) =>
+        call("GET", "/posts/feed?limit=20", { token: users[i % users.length] })
+      )
+    ).result
   );
 
   // Deep pages: walk the cursor once, then fetch those pages repeatedly
@@ -156,15 +188,20 @@ async function main() {
     cursors.push(cursor);
   }
   phases.push(
-    (await load("GET /posts/feed (by cursor)", REQUESTS, CONCURRENCY, (i) =>
-      call("GET", `/posts/feed?limit=20&cursor=${cursors[i % cursors.length]}`)
-    )).result
+    (
+      await load("GET /posts/feed (by cursor)", REQUESTS, CONCURRENCY, (i) =>
+        call("GET", `/posts/feed?limit=20&cursor=${cursors[i % cursors.length]}`)
+      )
+    ).result
   );
 
   const search = await load("GET /search (hybrid)", REQUESTS, CONCURRENCY, (i) =>
     call("GET", `/search?q=${encodeURIComponent(QUERIES[i % QUERIES.length])}`)
   );
-  const modes = search.samples.reduce((acc, s) => ((acc[s.json?.data?.mode ?? "error"] = (acc[s.json?.data?.mode ?? "error"] ?? 0) + 1), acc), {});
+  const modes = search.samples.reduce(
+    (acc, s) => ((acc[s.json?.data?.mode ?? "error"] = (acc[s.json?.data?.mode ?? "error"] ?? 0) + 1), acc),
+    {}
+  );
   phases.push({ ...search.result, modes });
   console.log(`  search modes: ${JSON.stringify(modes)}`);
 
@@ -179,7 +216,13 @@ async function main() {
       node: process.version,
       note: "Client, API, AI service, MongoDB, Redis and Qdrant all on this one machine",
     },
-    parameters: { base: BASE, posts: POSTS, concurrency: CONCURRENCY, requests_per_read_phase: REQUESTS, users: 10 },
+    parameters: {
+      base: BASE,
+      posts: POSTS,
+      concurrency: CONCURRENCY,
+      requests_per_read_phase: REQUESTS,
+      users: 10,
+    },
     phases,
     pipeline_after: finalHealth?.pipeline,
   };
