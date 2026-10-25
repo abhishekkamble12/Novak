@@ -1,0 +1,4 @@
+# Mechanical reformatting commits; `git blame` skips them with
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# style: apply Prettier
+d926df953c4d83c4fa5eb54f3c43f2ed2235af10
