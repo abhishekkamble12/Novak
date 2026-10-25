@@ -36,11 +36,14 @@ export function errorHandler(err: Error, req: Request, res: Response, next: Next
     return send(req, res, 400, "VALIDATION_ERROR", details[0]?.message ?? "Invalid request", details);
   }
 
-  // 3. body-parser errors (malformed JSON, payload too large) carry a 4xx status
+  // 3. body-parser errors (malformed JSON, too large, compressed) carry a 4xx status
   const status = (err as { status?: number }).status;
   if (typeof status === "number" && status >= 400 && status < 500) {
-    const code = status === 413 ? "PAYLOAD_TOO_LARGE" : "BAD_REQUEST";
-    return send(req, res, status, code, status === 413 ? "Request body too large" : "Malformed request body");
+    if (status === 413) return send(req, res, status, "PAYLOAD_TOO_LARGE", "Request body too large");
+    if (status === 415) {
+      return send(req, res, status, "UNSUPPORTED_MEDIA_TYPE", "Compressed request bodies are not accepted");
+    }
+    return send(req, res, status, "BAD_REQUEST", "Malformed request body");
   }
 
   // 4. Unhandled exceptions

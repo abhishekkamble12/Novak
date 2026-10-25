@@ -63,7 +63,9 @@ export function createApp(): Express {
 
   app.use(globalRateLimiter);
 
-  app.use(express.json({ limit: "100kb" }));
+  // No client sends compressed bodies. Refusing them (415) removes the decompression path
+  // entirely: no zip bombs, and no exposure to bugs like GHSA-27r3-jxmh-p828.
+  app.use(express.json({ limit: "100kb", inflate: false }));
   app.use(cookieParser());
 
   app.use("/api", healthRoutes);
