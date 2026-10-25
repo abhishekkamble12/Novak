@@ -223,17 +223,20 @@ export async function likePost(postId: string, userId: string): Promise<number> 
   const post = await PostModel.findByIdAndUpdate(postId, { $inc: { likesCount: inc } }, { new: true })
     .select("likesCount")
     .lean();
-  return post?.likesCount ?? 0;
+  return Math.max(0, post?.likesCount ?? 0);
 }
 
 export async function unlikePost(postId: string, userId: string): Promise<number> {
   await findVisiblePost(postId, userId);
   const result = await LikeModel.deleteOne({ user: userId, post: postId });
-  const filter = result.deletedCount > 0 ? { _id: postId, likesCount: { $gt: 0 } } : { _id: postId };
+  // Every Like insert/delete maps to exactly one +1/-1, so the counter always converges to the
+  // number of Like documents. No `likesCount > 0` guard: a concurrent like can delete-before-
+  // increment, and skipping this decrement would leave the counter permanently one too high.
   const inc = result.deletedCount > 0 ? -1 : 0;
-  await PostModel.updateOne(filter, { $inc: { likesCount: inc } });
-  const post = await PostModel.findById(postId).select("likesCount").lean();
-  return post?.likesCount ?? 0;
+  const post = await PostModel.findByIdAndUpdate(postId, { $inc: { likesCount: inc } }, { new: true })
+    .select("likesCount")
+    .lean();
+  return Math.max(0, post?.likesCount ?? 0);
 }
 
 export async function getTrendingTags(limit = 10): Promise<TrendingTag[]> {

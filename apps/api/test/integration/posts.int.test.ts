@@ -170,6 +170,22 @@ describe("likes", () => {
     expect(doc?.likesCount).toBe(await LikeModel.countDocuments({ post: post.id }));
   });
 
+  it("an unlike that overtakes an in-flight like still decrements the counter", async () => {
+    // The storm above depends on timing (it failed in CI, never locally). This forces the
+    // interleaving that broke it: a like has inserted its Like document but not yet run
+    // its $inc when the unlike arrives.
+    const post = await createPost(app, alice, "interleaved");
+    await LikeModel.create({ user: bob.id, post: post.id }); // like, step 1: upsert inserted
+
+    const res = await request(app).delete(`/api/posts/${post.id}/like`).set(bob.auth).expect(200);
+    expect(res.body.data.likesCount).toBe(0); // clients never see the transient -1
+
+    await PostModel.updateOne({ _id: post.id }, { $inc: { likesCount: 1 } }); // like, step 2: $inc
+    const doc = await PostModel.findById(post.id).lean();
+    expect(doc?.likesCount).toBe(await LikeModel.countDocuments({ post: post.id }));
+    expect(doc?.likesCount).toBe(0);
+  });
+
   it("unlike without a like is a no-op", async () => {
     const post = await createPost(app, alice, "never liked");
     const res = await request(app).delete(`/api/posts/${post.id}/like`).set(bob.auth).expect(200);

@@ -116,8 +116,15 @@ with its depth. `_id` breaks ties between posts created in the same millisecond.
 ### Likes
 
 A like is an upsert on the unique `(user, post)` index; the counter is incremented only when
-the upsert inserted a document. 20 concurrent likes from one user give `likesCount = 1`, and a
-concurrent like/unlike storm leaves the counter equal to the number of like documents (tested).
+the upsert inserted a document, and decremented only when an unlike deleted one. Each Like
+insert or delete maps to exactly one `+1`/`-1`, with no "only if > 0" guard: an unlike can
+delete a Like before the like's `$inc` lands, and skipping that decrement would leave the
+counter one too high forever (this happened in CI). The stored counter can be `-1` for a
+moment and converges; responses clamp it at 0.
+
+Tested: 20 concurrent likes from one user give `likesCount = 1`; a like/unlike storm leaves the
+counter equal to the number of Like documents; and a deterministic test forces the
+delete-before-increment interleaving.
 
 ## Authentication
 
